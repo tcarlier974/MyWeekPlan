@@ -197,7 +197,8 @@ function App() {
             />
 
             <div className="modal-body">
-              <h2>{selectedRecipe.nom}</h2>
+              <h2 style={{color: 'var(--primary)'}}>
+                {selectedRecipe.nom}</h2>
               <div className="modal-meta">
                 ⏱ {selectedRecipe.temps_prep} min • 👤 Pour {portions} personne(s)
               </div>

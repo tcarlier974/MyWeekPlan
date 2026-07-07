@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 importProduits.js
 importRecettes.js
+updateInstructions.js
