@@ -2,7 +2,7 @@ import { supabase } from '../supabase'
 
 // --- LE MOTEUR D'OPTIMISATION ---
 // Cette fonction cherche le paquet le moins cher pour couvrir un besoin en grammes
-function getBestProduct(tag, besoinTotalGrammes, produitsDb) {
+export function getBestProduct(tag, besoinTotalGrammes, produitsDb) {
   const produitsDispos = produitsDb
     .filter(p => p.tag_ingredient === tag)
     .sort((a, b) => b.poids_grammes - a.poids_grammes);

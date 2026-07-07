@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { getBestProduct } from './solver'
 
 export async function generateShoppingList(menu, portions = 1) {
   try {
