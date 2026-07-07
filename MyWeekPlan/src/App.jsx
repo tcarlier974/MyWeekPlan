@@ -3,6 +3,27 @@ import { generateWeeklyMenu, getAlternativeMeal } from './utils/solver'
 import { generateShoppingList } from './utils/shoppingList'
 import './App.css'
 
+// Attribue un émoji selon le tag
+const getEmojiForTag = (tag) => {
+  const map = {
+    'poulet': '🍗', 'boeuf_hache': '🥩', 'boeuf_bourguignon': '🥩', 'saucisses': '🌭', 'lardons': '🥓', 'jambon': '🥓',
+    'saumon': '🐟', 'pave_saumon': '🐟', 'saumon_fume': '🐟', 'cabillaud': '🐟', 'crevettes': '🦐',
+    'oignons': '🧅', 'ail': '🧄', 'poivrons': '🫑', 'carottes': '🥕', 'pommes_de_terre': '🥔', 'courgettes': '🥒', 'aubergines': '🍆', 'salade': '🥬', 'champignons': '🍄', 'tomates_fraiches': '🍅',
+    'creme': '🥛', 'lait': '🥛', 'fromage_rape': '🧀', 'oeufs': '🥚', 'beurre': '🧈',
+    'pates': '🍝', 'riz': '🍚', 'pain': '🥖'
+  };
+  return map[tag] || '🛒';
+};
+
+// Attribue une couleur de fond selon le tag
+const getBackgroundClass = (tag) => {
+  if (['poulet', 'boeuf_hache', 'boeuf_bourguignon', 'saucisses', 'lardons', 'jambon'].includes(tag)) return 'bg-meat';
+  if (['saumon', 'pave_saumon', 'saumon_fume', 'cabillaud', 'crevettes'].includes(tag)) return 'bg-fish';
+  if (['oignons', 'ail', 'poivrons', 'carottes', 'pommes_de_terre', 'courgettes', 'aubergines', 'salade', 'champignons', 'tomates_fraiches'].includes(tag)) return 'bg-veg';
+  if (['creme', 'lait', 'fromage_rape', 'oeufs', 'beurre'].includes(tag)) return 'bg-dairy';
+  return 'bg-default';
+};
+
 function App() {
   const [currentStep, setCurrentStep] = useState(1)
   
@@ -161,25 +182,50 @@ function App() {
         </div>
       )}
 
-      {currentStep === 3 && (
-        <div className="screen">
-          <button className="btn-back" onClick={() => setCurrentStep(2)}>Retour au menu</button>
-          {shoppingList && Object.keys(shoppingList).map(rayon => (
-            <div key={rayon} className="rayon-section">
-              <h3 className="rayon-title">📍 {rayon}</h3>
-              <div>
-                {shoppingList[rayon].map((item, index) => {
-                  const isChecked = checkedItems[item.id]
+      {/* --- ÉTAPE 3 : LISTE DE COURSES --- */}
+      {currentStep === 3 && shoppingList && (
+        <div className="shopping-container">
+          <h2 className="step-title" style={{ marginBottom: '32px' }}>Liste de courses</h2>
+          
+          {Object.entries(shoppingList).map(([rayon, items]) => (
+            <div key={rayon} className="shopping-category">
+              <h3 className="category-title">{rayon}</h3>
+              
+              <div className="shopping-card">
+                {items.map((item) => {
+                  const isChecked = checkedItems.includes(item.id);
                   return (
-                    <div key={index} className={`course-item ${isChecked ? 'checked' : ''}`} onClick={() => toggleCheck(item.id)}>
-                      <input type="checkbox" checked={isChecked || false} readOnly />
-                      <span><strong>{item.quantite}x</strong> {item.nom}</span>
+                    <div 
+                      key={item.id} 
+                      className={`shopping-item-row ${isChecked ? 'checked' : ''}`}
+                      onClick={() => toggleCheckItem(item.id)}
+                    >
+                      {/* L'icône dynamique */}
+                      <div className={`item-icon-wrapper ${getBackgroundClass(item.tag)}`}>
+                        {getEmojiForTag(item.tag)}
+                      </div>
+                      
+                      {/* Le texte */}
+                      <div className="item-details">
+                        <div className="item-name">{item.nom}</div>
+                        {/* On affiche juste les grammes exacts calculés */}
+                        <div className="item-qty">{item.quantite} g</div>
+                      </div>
+                      
+                      {/* La case à cocher ronde */}
+                      <div className="item-checkbox">
+                        {isChecked && <span style={{ color: 'white', fontSize: '12px' }}>✓</span>}
+                      </div>
                     </div>
                   )
                 })}
               </div>
             </div>
           ))}
+
+          <button className="btn-primary" onClick={() => setCurrentStep(1)} style={{ marginTop: '24px' }}>
+            Refaire un menu
+          </button>
         </div>
       )}
       {/* --- LA MODALE DE DÉTAIL RECETTE --- */}
