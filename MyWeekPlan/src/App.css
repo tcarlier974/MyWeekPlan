@@ -1,86 +1,60 @@
 /* src/App.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-  /* Thème Clair par défaut */
-  --bg-color: #f9fafb;
-  --text-main: #1f2937;
-  --text-muted: #6b7280;
-  --surface: #ffffff;
-  --border: #e5e7eb;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --success: #10b981;
-  --success-hover: #059669;
-  --radius: 16px;
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --bg-color: #FAFAFA;
+  --surface: #FFFFFF;
+  --text-main: #111111;
+  --text-muted: #737373;
+  --border: #E5E5E5;
+  --black: #000000;
+  --radius-card: 16px;
+  --radius-pill: 9999px;
 }
 
-/* Mode Sombre Automatique (selon les réglages de ton téléphone/PC) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-color: #111827;
-    --text-main: #f9fafb;
-    --text-muted: #9ca3af;
-    --surface: #1f2937;
-    --border: #374151;
-  }
-}
-
-/* --- STRUCTURE GLOBALE --- */
 body {
   background-color: var(--bg-color);
   color: var(--text-main);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', -apple-system, sans-serif;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
 }
 
 .app-container {
-  max-width: 600px;
+  max-width: 480px; /* Format "Mobile-first" plus étroit */
   margin: 0 auto;
-  padding: 24px 16px;
-  padding-bottom: 80px; /* Espace en bas pour scroller confortablement sur mobile */
+  padding: 40px 20px 100px 20px;
 }
 
-/* --- EN-TÊTE --- */
-.header {
+/* --- TYPOGRAPHIE --- */
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.05em;
   text-align: center;
+  margin-bottom: 40px;
+}
+h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+}
+
+/* --- CONFIGURATION (BUDGET) --- */
+.settings-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 24px;
   margin-bottom: 32px;
 }
-.header h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin: 0;
-  letter-spacing: -0.05em;
-}
-.header p {
-  color: var(--text-muted);
-  margin-top: 4px;
-}
-
-/* --- CARTES ET SECTIONS --- */
-.card {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 24px;
-  box-shadow: var(--shadow);
-}
-.card h2 {
-  margin-top: 0;
-  font-size: 1.25rem;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-}
-
-/* --- FORMULAIRES ET BOUTONS --- */
-.settings-row {
+.input-row {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 .input-group {
   display: flex;
@@ -88,92 +62,153 @@ body {
   flex: 1;
 }
 .input-group label {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 500;
   color: var(--text-muted);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
-input[type="number"] {
-  padding: 10px 12px;
+.input-group input {
+  padding: 12px;
   border-radius: 8px;
   border: 1px solid var(--border);
-  background-color: var(--bg-color);
-  color: var(--text-main);
   font-size: 1rem;
-  font-weight: 600;
+  font-family: inherit;
   outline: none;
+  transition: border-color 0.2s;
 }
-input[type="number"]:focus {
-  border-color: var(--primary);
+.input-group input:focus {
+  border-color: var(--black);
 }
 
+/* --- BOUTONS --- */
 .btn {
   width: 100%;
-  padding: 14px;
+  padding: 16px;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-pill);
   font-size: 1rem;
-  font-weight: bold;
+  font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: transform 0.1s, opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary {
+  background-color: var(--black);
   color: white;
 }
-.btn-primary { background-color: var(--primary); }
-.btn-primary:active { background-color: var(--primary-hover); transform: scale(0.98); }
-.btn-success { background-color: var(--success); }
-.btn-success:active { background-color: var(--success-hover); transform: scale(0.98); }
-.btn:disabled { opacity: 0.7; cursor: not-allowed; }
+.btn-primary:active {
+  transform: scale(0.98);
+}
+.btn-secondary {
+  background-color: var(--surface);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  margin-top: 16px;
+}
+.btn-secondary:active {
+  background-color: var(--bg-color);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-/* --- ÉLÉMENTS DU MENU --- */
-.menu-item {
+/* --- CARTES DE REPAS (LE STYLE ROMI) --- */
+.meal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background-color: var(--bg-color);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  margin-bottom: 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
 }
-.menu-item h3 { margin: 0 0 4px 0; font-size: 1rem; }
-.menu-item-price { font-weight: bold; color: var(--success); font-size: 1.1rem; }
+.meal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.meal-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0;
+}
+.meal-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.tag {
+  background-color: #F3F4F6;
+  color: #4B5563;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: lowercase;
+}
+.meal-price-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+.chevron {
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  font-weight: 300;
+}
 
 /* --- LISTE DE COURSES --- */
-.rayon-title {
-  color: var(--primary);
-  font-size: 1.1rem;
-  margin-top: 24px;
-  margin-bottom: 12px;
-  border-bottom: 2px solid var(--border);
-  padding-bottom: 4px;
+.shopping-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  margin-top: 32px;
 }
-.shopping-list { list-style: none; padding: 0; margin: 0; }
+.rayon-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 24px 0 12px 0;
+  color: var(--text-main);
+}
+.shopping-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
 .shopping-item {
   display: flex;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-  cursor: pointer;
-  transition: all 0.2s;
+  border-bottom: 1px solid #F3F4F6;
+  font-size: 0.95rem;
 }
-.shopping-item:last-child { border-bottom: none; }
+.shopping-item:last-child {
+  border-bottom: none;
+}
 .shopping-item input[type="checkbox"] {
-  width: 24px;
-  height: 24px;
-  margin-right: 16px;
-  accent-color: var(--success);
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  accent-color: var(--black);
+  cursor: pointer;
 }
 .shopping-item.checked {
-  opacity: 0.5;
+  color: var(--text-muted);
   text-decoration: line-through;
 }
-.error-msg {
-  color: #ef4444;
-  background-color: #fef2f2;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #f87171;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 16px;
+.item-qty {
+  font-weight: 600;
+  margin-right: 6px;
 }

@@ -10,7 +10,6 @@ function App() {
   const [totalCost, setTotalCost] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
-  
   const [shoppingList, setShoppingList] = useState(null)
   const [isListLoading, setIsListLoading] = useState(false)
   const [checkedItems, setCheckedItems] = useState({})
@@ -29,7 +28,7 @@ function App() {
       setMenu(resultat.menu)
       setTotalCost(resultat.coutTotal)
       if (!resultat.succes) {
-        setErrorMsg("Impossible de tenir le budget. Voici le menu le plus proche trouvé.")
+        setErrorMsg("Le budget est trop serré. Voici l'option la plus proche.")
       }
     }
     setIsLoading(false)
@@ -51,16 +50,13 @@ function App() {
 
   return (
     <div className="app-container">
-      <header className="header">
-        <h1>MyWeekPlan</h1>
-        <p>Gère ton budget, mange bien.</p>
-      </header>
+      <div className="logo">MyWeekPlan.</div>
 
-      {/* ZONE DE RÉGLAGES */}
-      <section className="card">
-        <div className="settings-row">
+      <div className="settings-box">
+        <h2>Ton plan de la semaine</h2>
+        <div className="input-row">
           <div className="input-group">
-            <label>Budget (€)</label>
+            <label>Budget total</label>
             <input type="number" value={budget} onChange={(e) => setBudget(Number(e.target.value))} />
           </div>
           <div className="input-group">
@@ -69,45 +65,56 @@ function App() {
           </div>
         </div>
         <button className="btn btn-primary" onClick={handleGenerateMenuClick} disabled={isLoading}>
-          {isLoading ? 'Calcul en cours...' : 'Générer la semaine !'}
+          {isLoading ? 'Préparation...' : 'Générer ma semaine →'}
         </button>
-      </section>
+      </div>
 
-      {errorMsg && <div className="error-msg">{errorMsg}</div>}
+      {errorMsg && <div style={{ color: 'red', fontSize: '0.9rem', marginBottom: '16px', textAlign: 'center' }}>{errorMsg}</div>}
 
-      {/* ZONE DU MENU */}
       {menu.length > 0 && (
-        <section className="card">
-          <h2>Ton Menu <span style={{ float: 'right', color: 'var(--success)' }}>{totalCost.toFixed(2)} €</span></h2>
+        <div className="menu-section">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '16px' }}>
+            <h2 style={{ margin: 0 }}>Des repas simples et variés</h2>
+            <span style={{ fontWeight: 600 }}>{totalCost.toFixed(2)} € total</span>
+          </div>
           
-          <div>
-            {menu.map((repas, index) => (
-              <div key={index} className="menu-item">
-                <div>
-                  <h3>{repas.nom}</h3>
-                  <small style={{ color: 'var(--text-muted)' }}>⏱ {repas.temps_prep} min</small>
+          <div className="menu-list">
+            {menu.map((repas, index) => {
+              // Si tu n'as pas encore de tags dans Supabase, on met "rapide" par défaut pour l'esthétique
+              const tag = repas.tags && repas.tags.length > 0 ? repas.tags[0] : "rapide"
+              
+              return (
+                <div key={index} className="meal-card">
+                  <div className="meal-info">
+                    <h3 className="meal-title">{repas.nom}</h3>
+                    <div className="meal-meta">
+                      <span>{repas.temps_prep} min</span>
+                      <span className="tag">{tag}</span>
+                    </div>
+                  </div>
+                  <div className="meal-price-box">
+                    {repas.prixCalcule.toFixed(2)} € <span className="chevron">›</span>
+                  </div>
                 </div>
-                <div className="menu-item-price">{repas.prixCalcule.toFixed(2)} €</div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {!shoppingList && (
-            <button className="btn btn-success" style={{ marginTop: '16px' }} onClick={handleGenerateListClick} disabled={isListLoading}>
-              {isListLoading ? 'Création...' : '🛒 Créer la liste de courses'}
+            <button className="btn btn-secondary" onClick={handleGenerateListClick} disabled={isListLoading}>
+              {isListLoading ? 'Création...' : 'Voir la liste de courses'}
             </button>
           )}
-        </section>
+        </div>
       )}
 
-      {/* ZONE DE LA LISTE DE COURSES */}
       {shoppingList && (
-        <section className="card">
-          <h2>Ma Liste de Courses</h2>
+        <div className="shopping-container">
+          <h2 style={{ borderBottom: '1px solid #E5E5E5', paddingBottom: '16px', margin: '0 0 16px 0' }}>Ta liste est prête</h2>
           
           {Object.keys(shoppingList).map(rayon => (
             <div key={rayon}>
-              <h3 className="rayon-title">📍 {rayon}</h3>
+              <div className="rayon-title">{rayon}</div>
               <ul className="shopping-list">
                 {shoppingList[rayon].map((item, index) => {
                   const isChecked = checkedItems[item.id]
@@ -115,17 +122,20 @@ function App() {
                     <li 
                       key={index} 
                       className={`shopping-item ${isChecked ? 'checked' : ''}`}
-                      onClick={() => toggleCheck(item.id)}
                     >
-                      <input type="checkbox" checked={isChecked || false} readOnly />
-                      <span><strong>{item.quantite}x</strong> {item.nom}</span>
+                      <input 
+                        type="checkbox" 
+                        checked={isChecked || false} 
+                        onChange={() => toggleCheck(item.id)}
+                      />
+                      <span><span className="item-qty">{item.quantite}x</span> {item.nom}</span>
                     </li>
                   )
                 })}
               </ul>
             </div>
           ))}
-        </section>
+        </div>
       )}
     </div>
   )
