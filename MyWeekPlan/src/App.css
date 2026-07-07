@@ -225,3 +225,39 @@ body {
   color: var(--text-light);
   text-decoration: line-through;
 }
+
+/* --- BOUTON DE RAFRAICHISSEMENT (REROLL) --- */
+.meal-price-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-reroll {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  background-color: var(--bg-app);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-reroll:active {
+  background-color: #e5e7eb;
+}
+
+/* L'animation qui fait tourner l'icône quand on clique */
+.btn-reroll.spinning {
+  animation: spin 0.8s linear infinite;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
