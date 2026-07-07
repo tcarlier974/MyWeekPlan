@@ -18,7 +18,7 @@ export async function generateShoppingList(menu, portions = 1) {
         recette.ingredients.forEach(ing => {
           const id = ing.url_produit
           // ON MULTIPLIE LA QUANTITÉ D'ACHAT
-          const quantiteTotale = ing.quantite * portions 
+          const quantiteTotale = Math.ceil(ing.quantite * portions) 
           
           if (rawList[id]) {
             rawList[id].quantite += quantiteTotale
