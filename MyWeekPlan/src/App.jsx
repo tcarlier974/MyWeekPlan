@@ -184,48 +184,48 @@ function App() {
 
       {/* --- ÉTAPE 3 : LISTE DE COURSES --- */}
       {currentStep === 3 && shoppingList && (
-        <div className="shopping-container">
-          <h2 className="step-title" style={{ marginBottom: '32px' }}>Liste de courses</h2>
+        <div className="screen">
+          <button className="btn-back" onClick={() => setCurrentStep(2)}>Retour au menu</button>
           
-          {Object.entries(shoppingList).map(([rayon, items]) => (
-            <div key={rayon} className="shopping-category">
-              <h3 className="category-title">{rayon}</h3>
-              
-              <div className="shopping-card">
-                {items.map((item) => {
-                  const isChecked = checkedItems.includes(item.id);
-                  return (
-                    <div 
-                      key={item.id} 
-                      className={`shopping-item-row ${isChecked ? 'checked' : ''}`}
-                      onClick={() => toggleCheckItem(item.id)}
-                    >
-                      {/* L'icône dynamique */}
-                      <div className={`item-icon-wrapper ${getBackgroundClass(item.tag)}`}>
-                        {getEmojiForTag(item.tag)}
+          <div className="shopping-container" style={{ marginTop: '24px' }}>
+            {Object.entries(shoppingList).map(([rayon, items]) => (
+              <div key={rayon} className="shopping-category">
+                <h3 className="category-title">{rayon}</h3>
+                
+                <div className="shopping-card">
+                  {items.map((item) => {
+                    // On vérifie si l'ID de l'item est dans l'objet/tableau checkedItems
+                    const isChecked = checkedItems[item.id] || false;
+                    
+                    return (
+                      <div 
+                        key={item.id} 
+                        className={`shopping-item-row ${isChecked ? 'checked' : ''}`}
+                        onClick={() => toggleCheck(item.id)} // Garde ta fonction toggleCheck d'origine
+                      >
+                        {/* L'icône dynamique */}
+                        <div className={`item-icon-wrapper ${getBackgroundClass(item.tag)}`}>
+                          {getEmojiForTag(item.tag)}
+                        </div>
+                        
+                        {/* Le texte */}
+                        <div className="item-details">
+                          <div className="item-name">{item.nom}</div>
+                          {/* Affichage propre en grammes */}
+                          <div className="item-qty">{item.quantite} g</div>
+                        </div>
+                        
+                        {/* La case à cocher ronde */}
+                        <div className="item-checkbox">
+                          {isChecked && <span style={{ color: 'white', fontSize: '14px', fontWeight: 'bold' }}>✓</span>}
+                        </div>
                       </div>
-                      
-                      {/* Le texte */}
-                      <div className="item-details">
-                        <div className="item-name">{item.nom}</div>
-                        {/* On affiche juste les grammes exacts calculés */}
-                        <div className="item-qty">{item.quantite} g</div>
-                      </div>
-                      
-                      {/* La case à cocher ronde */}
-                      <div className="item-checkbox">
-                        {isChecked && <span style={{ color: 'white', fontSize: '12px' }}>✓</span>}
-                      </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
-
-          <button className="btn-primary" onClick={() => setCurrentStep(1)} style={{ marginTop: '24px' }}>
-            Refaire un menu
-          </button>
+            ))}
+          </div>
         </div>
       )}
       {/* --- LA MODALE DE DÉTAIL RECETTE --- */}
