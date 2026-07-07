@@ -1,39 +1,64 @@
 import { supabase } from '../supabase'
 
-// Ajout du paramètre portions
 export async function generateShoppingList(menu, portions = 1) {
   try {
     const { data: produitsDb, error } = await supabase.from('produits_magasin').select('*')
     if (error) throw new Error("Erreur produits.")
 
-    const mapProduits = {}
-    produitsDb.forEach(p => {
-      mapProduits[p.url_produit] = { nom: p.nom_produit, rayon: p.rayon }
-    })
-
-    const rawList = {}
+    // 1. On regroupe le besoin global en grammes pour toute la semaine
+    const besoinsParTag = {}
 
     menu.forEach(recette => {
       if (recette.ingredients && Array.isArray(recette.ingredients)) {
         recette.ingredients.forEach(ing => {
-          const id = ing.url_produit
-          // ON MULTIPLIE LA QUANTITÉ D'ACHAT
-          const quantiteTotale = Math.ceil(ing.quantite * portions) 
+          const besoinTotal = (ing.besoin_grammes || 0) * portions
           
-          if (rawList[id]) {
-            rawList[id].quantite += quantiteTotale
+          if (besoinsParTag[ing.tag]) {
+            besoinsParTag[ing.tag] += besoinTotal
           } else {
-            rawList[id] = {
-              id: id,
-              quantite: quantiteTotale,
-              nom: mapProduits[id]?.nom || "Produit inconnu",
-              rayon: mapProduits[id]?.rayon || "Autre"
-            }
+            besoinsParTag[ing.tag] = besoinTotal
           }
         })
       }
     })
 
+    // 2. On choisit les meilleurs paquets pour la liste finale
+    const rawList = {}
+
+    Object.keys(besoinsParTag).forEach(tag => {
+      const besoinSemaine = besoinsParTag[tag]
+      const produitsDispos = produitsDb.filter(p => p.tag_ingredient === tag)
+
+      if (produitsDispos.length > 0) {
+        let meilleurCout = Infinity
+        let choixFinalProduit = null
+        let nbPaquetsFinal = 0
+
+        produitsDispos.forEach(p => {
+          const poidsDuPaquet = p.poids_grammes || 1
+          const paquetsRequis = Math.ceil(besoinSemaine / poidsDuPaquet)
+          const coutTotal = paquetsRequis * p.prix
+
+          if (coutTotal < meilleurCout) {
+            meilleurCout = coutTotal
+            choixFinalProduit = p
+            nbPaquetsFinal = paquetsRequis
+          }
+        })
+
+        // On ajoute le vainqueur à la liste de courses
+        if (choixFinalProduit) {
+          rawList[choixFinalProduit.url_produit] = {
+            id: choixFinalProduit.url_produit,
+            quantite: nbPaquetsFinal,
+            nom: choixFinalProduit.nom_produit,
+            rayon: choixFinalProduit.rayon || "Autre"
+          }
+        }
+      }
+    })
+
+    // 3. On trie par rayon pour l'affichage
     const groupedList = {}
     Object.values(rawList).forEach(item => {
       if (!groupedList[item.rayon]) groupedList[item.rayon] = []

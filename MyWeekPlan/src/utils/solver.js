@@ -1,26 +1,49 @@
 import { supabase } from '../supabase'
 
-// Ajout du paramètre "portions" (par défaut à 1)
+// --- LE MOTEUR D'OPTIMISATION ---
+// Cette fonction cherche le paquet le moins cher pour couvrir un besoin en grammes
+function getBestProduct(tag, besoinTotalGrammes, produitsDb) {
+  // On filtre le rayon pour ne garder que les produits avec le bon tag
+  const produitsDispos = produitsDb.filter(p => p.tag_ingredient === tag)
+  
+  if (produitsDispos.length === 0) return { cout: 0, produitTrouve: false }
+
+  let meilleurCout = Infinity
+
+  produitsDispos.forEach(p => {
+    const poidsDuPaquet = p.poids_grammes || 1 // Sécurité anti-zéro
+    // Combien de paquets faut-il acheter ? (Math.ceil arrondit toujours au supérieur)
+    const paquetsRequis = Math.ceil(besoinTotalGrammes / poidsDuPaquet)
+    const coutTotalAchat = paquetsRequis * p.prix
+
+    // Si cette combinaison est moins chère, on la garde en mémoire
+    if (coutTotalAchat < meilleurCout) {
+      meilleurCout = coutTotalAchat
+    }
+  })
+
+  return { cout: meilleurCout, produitTrouve: true }
+}
+
 export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions = 1) {
   try {
     const { data: recettesDb, error: errRecettes } = await supabase.from('recettes').select('*')
     const { data: produitsDb, error: errProduits } = await supabase.from('produits_magasin').select('*')
 
-    if (errRecettes || errProduits) throw new Error("Erreur de récupération des données")
-    if (!recettesDb || recettesDb.length === 0) throw new Error("Aucune recette trouvée.")
+    if (errRecettes || errProduits) throw new Error("Erreur base de données")
+    if (!recettesDb || recettesDb.length === 0) throw new Error("Aucune recette.")
 
-    const mapPrixProduits = {}
-    produitsDb.forEach(produit => {
-      mapPrixProduits[produit.url_produit] = produit.prix
-    })
-
+    // On calcule le prix de chaque recette dynamiquement
     const recettesAvecPrix = recettesDb.map(recette => {
       let prixTotalRecette = 0
+      
       if (recette.ingredients && Array.isArray(recette.ingredients)) {
         recette.ingredients.forEach(ingredient => {
-           const prixUnitaire = mapPrixProduits[ingredient.url_produit] || 0
-           // ON MULTIPLIE PAR LE NOMBRE DE PORTIONS
-           prixTotalRecette += (prixUnitaire * ingredient.quantite * portions) 
+           // On calcule le besoin total en grammes (ex: 125g * 4 personnes = 500g)
+           const besoinTotal = (ingredient.besoin_grammes || 0) * portions
+           // On demande à l'optimiseur combien ça va nous coûter
+           const achat = getBestProduct(ingredient.tag, besoinTotal, produitsDb)
+           prixTotalRecette += achat.cout
         })
       }
       return { ...recette, prixCalcule: prixTotalRecette }
@@ -48,21 +71,18 @@ export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions 
   }
 }
 
-// Ajout du paramètre "portions" ici aussi
 export async function getAlternativeMeal(currentMenu, indexToReplace, targetBudget, portions = 1) {
   try {
     const { data: recettesDb } = await supabase.from('recettes').select('*')
     const { data: produitsDb } = await supabase.from('produits_magasin').select('*')
 
-    const mapPrixProduits = {}
-    produitsDb.forEach(p => mapPrixProduits[p.url_produit] = p.prix)
-
     const recettesAvecPrix = recettesDb.map(recette => {
       let prixTotal = 0
       if (recette.ingredients) {
         recette.ingredients.forEach(ing => {
-           // ON MULTIPLIE PAR LE NOMBRE DE PORTIONS
-           prixTotal += (mapPrixProduits[ing.url_produit] || 0) * ing.quantite * portions
+           const besoinTotal = (ing.besoin_grammes || 0) * portions
+           const achat = getBestProduct(ing.tag, besoinTotal, produitsDb)
+           prixTotal += achat.cout
         })
       }
       return { ...recette, prixCalcule: prixTotal }
@@ -76,13 +96,11 @@ export async function getAlternativeMeal(currentMenu, indexToReplace, targetBudg
     const recettesPossibles = recettesAvecPrix.filter(r => !currentIds.includes(r.id) && r.prixCalcule <= budgetDispo)
 
     if (recettesPossibles.length > 0) {
-      const nouvelleRecette = recettesPossibles[Math.floor(Math.random() * recettesPossibles.length)]
-      return { succes: true, recette: nouvelleRecette }
+      return { succes: true, recette: recettesPossibles[Math.floor(Math.random() * recettesPossibles.length)] }
     } else {
       const autresRecettes = recettesAvecPrix.filter(r => !currentIds.includes(r.id))
       if (autresRecettes.length > 0) {
-         const nouvelleRecette = autresRecettes[Math.floor(Math.random() * autresRecettes.length)]
-         return { succes: true, recette: nouvelleRecette, depassement: true }
+         return { succes: true, recette: autresRecettes[Math.floor(Math.random() * autresRecettes.length)], depassement: true }
       }
       return { succes: false, erreur: "Pas d'autre recette dispo." }
     }
