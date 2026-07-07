@@ -126,24 +126,31 @@ function App() {
           <div className="meal-list">
             {menu.map((repas, index) => (
               <div key={index} className="meal-item">
-                <div className="meal-item-left">
-                  <h3>{repas.nom}</h3>
-                  <p>⏱ {repas.temps_prep} min</p>
+                
+                {/* AJOUT DE L'IMAGE ICI */}
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <img 
+                    src={repas.image_url || 'https://via.placeholder.com/60?text=Miam'} 
+                    alt={repas.nom} 
+                    className="meal-image" 
+                  />
+                  
+                  <div className="meal-item-left">
+                    <h3>{repas.nom}</h3>
+                    <p>⏱ {repas.temps_prep} min</p>
+                  </div>
                 </div>
                 
-                {/* NOUVELLE ZONE DE PRIX AVEC LE BOUTON REROLL */}
                 <div className="meal-price-container">
                   <span className="meal-price">{repas.prixCalcule.toFixed(2)} €</span>
                   <button 
                     className={`btn-reroll ${rerollingIndex === index ? 'spinning' : ''}`}
                     onClick={() => handleRerollMeal(index)}
                     disabled={rerollingIndex !== null}
-                    title="Changer ce plat"
                   >
                     🔄
                   </button>
                 </div>
-                
               </div>
             ))}
           </div>

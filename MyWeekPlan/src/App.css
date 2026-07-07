@@ -261,3 +261,13 @@ body {
 @keyframes spin {
   100% { transform: rotate(360deg); }
 }
+
+/* Style de la miniature */
+.meal-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  object-fit: cover; /* Permet à l'image de remplir le carré sans se déformer */
+  margin-right: 16px;
+  background-color: #f3f4f6; /* Couleur de fond si l'image ne charge pas */
+}
