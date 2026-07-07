@@ -3,10 +3,9 @@ import { supabase } from '../supabase'
 // --- LE MOTEUR D'OPTIMISATION ---
 // Cette fonction cherche le paquet le moins cher pour couvrir un besoin en grammes
 function getBestProduct(tag, besoinTotalGrammes, produitsDb) {
-  // On récupère tous les paquets du rayon, triés du plus gros poids au plus petit
   const produitsDispos = produitsDb
     .filter(p => p.tag_ingredient === tag)
-    .sort((a, b) => b.poids_grammes - a.poids_grammes); // Le plus gros poids en premier
+    .sort((a, b) => b.poids_grammes - a.poids_grammes);
   
   if (produitsDispos.length === 0) return { cout: 0, produitTrouve: false };
 
@@ -14,26 +13,23 @@ function getBestProduct(tag, besoinTotalGrammes, produitsDb) {
   let coutTotal = 0;
   let detailsAchat = [];
 
-  // On essaie de combler le besoin en commençant par les gros paquets
   produitsDispos.forEach(p => {
     if (resteABesoin <= 0) return;
-
     const poids = p.poids_grammes;
-    // Combien de paquets de ce type peut-on prendre ?
     const nbPaquets = Math.floor(resteABesoin / poids);
 
     if (nbPaquets > 0) {
       coutTotal += nbPaquets * p.prix;
       resteABesoin -= (nbPaquets * poids);
-      detailsAchat.push({ nom: p.nom_produit, quantite: nbPaquets });
+      // ON AJOUTE L'URL DU PRODUIT ICI
+      detailsAchat.push({ id: p.url_produit, nom: p.nom_produit, quantite: nbPaquets });
     }
   });
 
-  // S'il reste un petit besoin (ex: il manque 100g), on prend le plus petit paquet dispo
   if (resteABesoin > 0) {
     const plusPetitPaquet = produitsDispos[produitsDispos.length - 1];
     coutTotal += plusPetitPaquet.prix;
-    detailsAchat.push({ nom: plusPetitPaquet.nom_produit, quantite: 1 });
+    detailsAchat.push({ id: plusPetitPaquet.url_produit, nom: plusPetitPaquet.nom_produit, quantite: 1 });
   }
 
   return { cout: coutTotal, produitTrouve: true, details: detailsAchat };

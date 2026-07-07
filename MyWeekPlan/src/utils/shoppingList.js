@@ -26,23 +26,23 @@ export async function generateShoppingList(menu, portions = 1) {
     const rawList = {}
 
     // Remplace la partie "3. On choisit les meilleurs paquets" dans src/utils/shoppingList.js
+    // ... dans src/utils/shoppingList.js
     Object.keys(besoinsParTag).forEach(tag => {
       const besoinSemaine = besoinsParTag[tag];
       const result = getBestProduct(tag, besoinSemaine, produitsDb);
 
       if (result.produitTrouve) {
         result.details.forEach(item => {
-          // Trouver le produit complet pour avoir le nom et le rayon
-          const produit = produitsDb.find(p => p.nom_produit === item.nom);
-          if (!rawList[produit.url_produit]) {
-            rawList[produit.url_produit] = { 
-              id: produit.url_produit, 
+          // On utilise item.id directement, c'est infaillible
+          if (!rawList[item.id]) {
+            rawList[item.id] = { 
+              id: item.id, 
               nom: item.nom, 
               quantite: item.quantite, 
-              rayon: produit.rayon 
+              rayon: produitsDb.find(p => p.url_produit === item.id)?.rayon || "Autre" 
             };
           } else {
-            rawList[produit.url_produit].quantite += item.quantite;
+            rawList[item.id].quantite += item.quantite;
           }
         });
       }
