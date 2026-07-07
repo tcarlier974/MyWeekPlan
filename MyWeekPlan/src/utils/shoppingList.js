@@ -25,38 +25,28 @@ export async function generateShoppingList(menu, portions = 1) {
     // 2. On choisit les meilleurs paquets pour la liste finale
     const rawList = {}
 
+    // Remplace la partie "3. On choisit les meilleurs paquets" dans src/utils/shoppingList.js
     Object.keys(besoinsParTag).forEach(tag => {
-      const besoinSemaine = besoinsParTag[tag]
-      const produitsDispos = produitsDb.filter(p => p.tag_ingredient === tag)
+      const besoinSemaine = besoinsParTag[tag];
+      const result = getBestProduct(tag, besoinSemaine, produitsDb);
 
-      if (produitsDispos.length > 0) {
-        let meilleurCout = Infinity
-        let choixFinalProduit = null
-        let nbPaquetsFinal = 0
-
-        produitsDispos.forEach(p => {
-          const poidsDuPaquet = p.poids_grammes || 1
-          const paquetsRequis = Math.ceil(besoinSemaine / poidsDuPaquet)
-          const coutTotal = paquetsRequis * p.prix
-
-          if (coutTotal < meilleurCout) {
-            meilleurCout = coutTotal
-            choixFinalProduit = p
-            nbPaquetsFinal = paquetsRequis
+      if (result.produitTrouve) {
+        result.details.forEach(item => {
+          // Trouver le produit complet pour avoir le nom et le rayon
+          const produit = produitsDb.find(p => p.nom_produit === item.nom);
+          if (!rawList[produit.url_produit]) {
+            rawList[produit.url_produit] = { 
+              id: produit.url_produit, 
+              nom: item.nom, 
+              quantite: item.quantite, 
+              rayon: produit.rayon 
+            };
+          } else {
+            rawList[produit.url_produit].quantite += item.quantite;
           }
-        })
-
-        // On ajoute le vainqueur à la liste de courses
-        if (choixFinalProduit) {
-          rawList[choixFinalProduit.url_produit] = {
-            id: choixFinalProduit.url_produit,
-            quantite: nbPaquetsFinal,
-            nom: choixFinalProduit.nom_produit,
-            rayon: choixFinalProduit.rayon || "Autre"
-          }
-        }
+        });
       }
-    })
+    });
 
     // 3. On trie par rayon pour l'affichage
     const groupedList = {}
