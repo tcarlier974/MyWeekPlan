@@ -214,7 +214,7 @@ function App() {
               </div>
 
               <h3 style={{ marginTop: '24px', marginBottom: '12px' }}>Préparation</h3>
-              <p style={{ color: 'var(--text-light)', lineHeight: '1.6' }}>
+              <p style={{ color: 'var(--text-light)', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
                 {selectedRecipe.instructions || "Les instructions de préparation n'ont pas encore été ajoutées pour cette recette."}
               </p>
             </div>
