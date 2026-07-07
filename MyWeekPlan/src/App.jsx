@@ -5,23 +5,26 @@ import './App.css'
 
 function App() {
   const [currentStep, setCurrentStep] = useState(1)
+  
   const [budget, setBudget] = useState(50)
   const [mealsCount, setMealsCount] = useState(7)
+  // NOUVEAU : On définit 2 portions par défaut
+  const [portions, setPortions] = useState(2) 
+  
   const [menu, setMenu] = useState([])
   const [totalCost, setTotalCost] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [shoppingList, setShoppingList] = useState(null)
   const [checkedItems, setCheckedItems] = useState({})
-  
-  // Nouvel état pour savoir quel plat est en train de tourner
   const [rerollingIndex, setRerollingIndex] = useState(null)
 
   const handleGenerateMenuClick = async () => {
     setIsLoading(true)
     setErrorMsg('')
     
-    const resultat = await generateWeeklyMenu(budget, mealsCount)
+    // On passe la variable portions au solveur
+    const resultat = await generateWeeklyMenu(budget, mealsCount, portions)
 
     if (resultat.erreur) {
       setErrorMsg(resultat.erreur)
@@ -33,30 +36,30 @@ function App() {
     setIsLoading(false)
   }
 
-  // --- NOUVELLE FONCTION : REROLL UN SEUL PLAT ---
   const handleRerollMeal = async (index) => {
-    setRerollingIndex(index) // Déclenche l'animation de chargement sur ce plat
+    setRerollingIndex(index) 
     
-    const resultat = await getAlternativeMeal(menu, index, budget)
+    // On passe la variable portions
+    const resultat = await getAlternativeMeal(menu, index, budget, portions)
     
     if (resultat.succes) {
       const nouveauMenu = [...menu]
-      nouveauMenu[index] = resultat.recette // On remplace le plat
+      nouveauMenu[index] = resultat.recette 
       setMenu(nouveauMenu)
       
-      // On recalcule le prix total de la semaine
       const nouveauPrix = nouveauMenu.reduce((sum, repas) => sum + repas.prixCalcule, 0)
       setTotalCost(nouveauPrix)
     } else {
       alert("Impossible de changer ce plat (As-tu assez de recettes dans ta base ?)")
     }
     
-    setRerollingIndex(null) // Arrête l'animation
+    setRerollingIndex(null)
   }
 
   const handleGenerateListClick = async () => {
     setIsLoading(true)
-    const list = await generateShoppingList(menu)
+    // On passe la variable portions
+    const list = await generateShoppingList(menu, portions)
     setShoppingList(list)
     setCurrentStep(3)
     setIsLoading(false)
@@ -75,25 +78,39 @@ function App() {
             <h1>MyWeekPlan</h1>
             <p>Ton budget, tes repas.</p>
           </div>
+          
           <div className="card">
+            {/* Ligne Budget */}
             <div className="input-group">
               <label>Quel est ton budget de la semaine ?</label>
               <div style={{ position: 'relative' }}>
-                <input type="number" value={budget} onChange={(e) => setBudget(Number(e.target.value))} />
+                <input type="number" value={budget} onChange={(e) => setBudget(Number(e.target.value))} min="1" />
                 <span style={{ position: 'absolute', right: '15px', top: '15px', fontWeight: 'bold', color: '#6b7280' }}>€</span>
               </div>
             </div>
-            <div className="input-group">
-              <label>Combien de repas veux-tu prévoir ?</label>
-              <input type="number" value={mealsCount} onChange={(e) => setMealsCount(Number(e.target.value))} />
+            
+            {/* Nouvelle disposition pour Repas et Personnes côte à côte */}
+            <div style={{ display: 'flex', gap: '15px' }}>
+              <div className="input-group" style={{ flex: 1 }}>
+                <label>Nbr de repas</label>
+                <input type="number" value={mealsCount} onChange={(e) => setMealsCount(Number(e.target.value))} min="1" />
+              </div>
+              <div className="input-group" style={{ flex: 1 }}>
+                <label>Personnes</label>
+                <input type="number" value={portions} onChange={(e) => setPortions(Number(e.target.value))} min="1" />
+              </div>
             </div>
           </div>
+          
           {errorMsg && <p style={{ color: '#ef4444', textAlign: 'center', fontWeight: 'bold' }}>{errorMsg}</p>}
           <button className="btn-action" onClick={handleGenerateMenuClick} disabled={isLoading}>
             {isLoading ? 'Calcul en cours...' : 'Générer mon menu'}
           </button>
         </div>
       )}
+
+      {/* Le reste de l'interface (Étape 2 et 3) ne change pas ! */}
+      {/* ... Copie-colle la suite de ton return () précédent à partir du {currentStep === 2 && ...} ... */}
 
       {currentStep === 2 && (
         <div className="screen">
