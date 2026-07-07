@@ -4,22 +4,25 @@ import { generateShoppingList } from './utils/shoppingList'
 import './App.css'
 
 function App() {
+  // GESTION DES ÉTAPES (1: Config, 2: Menu, 3: Liste)
+  const [currentStep, setCurrentStep] = useState(1)
+
   const [budget, setBudget] = useState(50)
   const [mealsCount, setMealsCount] = useState(7)
+  
   const [menu, setMenu] = useState([])
   const [totalCost, setTotalCost] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  
   const [shoppingList, setShoppingList] = useState(null)
-  const [isListLoading, setIsListLoading] = useState(false)
   const [checkedItems, setCheckedItems] = useState({})
 
+  // --- ACTIONS ---
   const handleGenerateMenuClick = async () => {
     setIsLoading(true)
     setErrorMsg('')
-    setMenu([])
-    setShoppingList(null)
-
+    
     const resultat = await generateWeeklyMenu(budget, mealsCount)
 
     if (resultat.erreur) {
@@ -28,17 +31,20 @@ function App() {
       setMenu(resultat.menu)
       setTotalCost(resultat.coutTotal)
       if (!resultat.succes) {
-        setErrorMsg("Le budget est trop serré. Voici l'option la plus proche.")
+        // Optionnel : avertir que le budget est dépassé
+        console.warn("Budget dépassé")
       }
+      setCurrentStep(2) // On passe à l'écran 2
     }
     setIsLoading(false)
   }
 
   const handleGenerateListClick = async () => {
-    setIsListLoading(true)
+    setIsLoading(true)
     const list = await generateShoppingList(menu)
     setShoppingList(list)
-    setIsListLoading(false)
+    setCurrentStep(3) // On passe à l'écran 3
+    setIsLoading(false)
   }
 
   const toggleCheck = (itemId) => {
@@ -48,95 +54,115 @@ function App() {
     }))
   }
 
+  // --- RENDU DES ÉCRANS ---
+
   return (
     <div className="app-container">
-      <div className="logo">MyWeekPlan.</div>
-
-      <div className="settings-box">
-        <h2>Ton plan de la semaine</h2>
-        <div className="input-row">
-          <div className="input-group">
-            <label>Budget total</label>
-            <input type="number" value={budget} onChange={(e) => setBudget(Number(e.target.value))} />
-          </div>
-          <div className="input-group">
-            <label>Repas</label>
-            <input type="number" value={mealsCount} onChange={(e) => setMealsCount(Number(e.target.value))} />
-          </div>
-        </div>
-        <button className="btn btn-primary" onClick={handleGenerateMenuClick} disabled={isLoading}>
-          {isLoading ? 'Préparation...' : 'Générer ma semaine →'}
-        </button>
-      </div>
-
-      {errorMsg && <div style={{ color: 'red', fontSize: '0.9rem', marginBottom: '16px', textAlign: 'center' }}>{errorMsg}</div>}
-
-      {menu.length > 0 && (
-        <div className="menu-section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '16px' }}>
-            <h2 style={{ margin: 0 }}>Des repas simples et variés</h2>
-            <span style={{ fontWeight: 600 }}>{totalCost.toFixed(2)} € total</span>
-          </div>
-          
-          <div className="menu-list">
-            {menu.map((repas, index) => {
-              // Si tu n'as pas encore de tags dans Supabase, on met "rapide" par défaut pour l'esthétique
-              const tag = repas.tags && repas.tags.length > 0 ? repas.tags[0] : "rapide"
-              
-              return (
-                <div key={index} className="meal-card">
-                  <div className="meal-info">
-                    <h3 className="meal-title">{repas.nom}</h3>
-                    <div className="meal-meta">
-                      <span>{repas.temps_prep} min</span>
-                      <span className="tag">{tag}</span>
-                    </div>
-                  </div>
-                  <div className="meal-price-box">
-                    {repas.prixCalcule.toFixed(2)} € <span className="chevron">›</span>
-                  </div>
-                </div>
-              )
-            })}
+      
+      {/* ÉTAPE 1 : PARAMÉTRAGE */}
+      {currentStep === 1 && (
+        <div className="screen">
+          <div className="header">
+            <h1>MyWeekPlan</h1>
+            <p>Ton budget, tes repas.</p>
           </div>
 
-          {!shoppingList && (
-            <button className="btn btn-secondary" onClick={handleGenerateListClick} disabled={isListLoading}>
-              {isListLoading ? 'Création...' : 'Voir la liste de courses'}
-            </button>
-          )}
+          <div className="card">
+            <div className="input-group">
+              <label>Quel est ton budget de la semaine ?</label>
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type="number" 
+                  value={budget} 
+                  onChange={(e) => setBudget(Number(e.target.value))} 
+                />
+                <span style={{ position: 'absolute', right: '15px', top: '15px', fontWeight: 'bold', color: '#6b7280' }}>€</span>
+              </div>
+            </div>
+
+            <div className="input-group">
+              <label>Combien de repas veux-tu prévoir ?</label>
+              <input 
+                type="number" 
+                value={mealsCount} 
+                onChange={(e) => setMealsCount(Number(e.target.value))} 
+              />
+            </div>
+          </div>
+
+          {errorMsg && <p style={{ color: '#ef4444', textAlign: 'center', fontWeight: 'bold' }}>{errorMsg}</p>}
+
+          <button className="btn-action" onClick={handleGenerateMenuClick} disabled={isLoading}>
+            {isLoading ? 'Calcul en cours...' : 'Générer mon menu'}
+          </button>
         </div>
       )}
 
-      {shoppingList && (
-        <div className="shopping-container">
-          <h2 style={{ borderBottom: '1px solid #E5E5E5', paddingBottom: '16px', margin: '0 0 16px 0' }}>Ta liste est prête</h2>
-          
-          {Object.keys(shoppingList).map(rayon => (
-            <div key={rayon}>
-              <div className="rayon-title">{rayon}</div>
-              <ul className="shopping-list">
+      {/* ÉTAPE 2 : LE MENU GÉNÉRÉ */}
+      {currentStep === 2 && (
+        <div className="screen">
+          <button className="btn-back" onClick={() => setCurrentStep(1)}>
+            Modifier le budget
+          </button>
+
+          <div className="budget-summary">
+            Coût total estimé : {totalCost.toFixed(2)} €
+          </div>
+
+          <div className="meal-list">
+            {menu.map((repas, index) => (
+              <div key={index} className="meal-item">
+                <div className="meal-item-left">
+                  <h3>{repas.nom}</h3>
+                  <p>⏱ {repas.temps_prep} min</p>
+                </div>
+                <div className="meal-price">
+                  {repas.prixCalcule.toFixed(2)} €
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button className="btn-action" onClick={handleGenerateListClick} disabled={isLoading}>
+            {isLoading ? 'Création...' : 'Valider & faire les courses'}
+          </button>
+        </div>
+      )}
+
+      {/* ÉTAPE 3 : LA LISTE DE COURSES */}
+      {currentStep === 3 && (
+        <div className="screen">
+          <button className="btn-back" onClick={() => setCurrentStep(2)}>
+            Retour au menu
+          </button>
+
+          {shoppingList && Object.keys(shoppingList).map(rayon => (
+            <div key={rayon} className="rayon-section">
+              <h3 className="rayon-title">📍 {rayon}</h3>
+              <div>
                 {shoppingList[rayon].map((item, index) => {
                   const isChecked = checkedItems[item.id]
                   return (
-                    <li 
+                    <div 
                       key={index} 
-                      className={`shopping-item ${isChecked ? 'checked' : ''}`}
+                      className={`course-item ${isChecked ? 'checked' : ''}`}
+                      onClick={() => toggleCheck(item.id)}
                     >
                       <input 
                         type="checkbox" 
                         checked={isChecked || false} 
-                        onChange={() => toggleCheck(item.id)}
+                        readOnly
                       />
-                      <span><span className="item-qty">{item.quantite}x</span> {item.nom}</span>
-                    </li>
+                      <span><strong>{item.quantite}x</strong> {item.nom}</span>
+                    </div>
                   )
                 })}
-              </ul>
+              </div>
             </div>
           ))}
         </div>
       )}
+
     </div>
   )
 }
