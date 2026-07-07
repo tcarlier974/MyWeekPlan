@@ -1,0 +1,532 @@
+[
+    {
+        "nom": "Escalope de porc à la crème",
+        "temps_prep": 20,
+        "image_url": "https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=500",
+        "ingredients": [
+            {"tag": "escalope_porc", "besoin_grammes": 150},
+            {"tag": "creme", "besoin_grammes": 60},
+            {"tag": "champignons", "besoin_grammes": 100}
+        ]
+    },
+    {
+        "nom": "Curry de pois chiches",
+        "temps_prep": 25,
+        "image_url": "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=500",
+        "ingredients": [
+            {"tag": "pois_chiches", "besoin_grammes": 200},
+            {"tag": "lait_de_coco", "besoin_grammes": 100},
+            {"tag": "tomates_conserve", "besoin_grammes": 150},
+            {"tag": "riz", "besoin_grammes": 80}
+        ]
+    },
+    {
+        "nom": "Couscous au poulet",
+        "temps_prep": 60,
+        "image_url": "https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=500",
+        "ingredients": [
+            {"tag": "semoule", "besoin_grammes": 100},
+            {"tag": "poulet", "besoin_grammes": 150},
+            {"tag": "courgettes", "besoin_grammes": 100},
+            {"tag": "carottes", "besoin_grammes": 100},
+            {"tag": "pois_chiches", "besoin_grammes": 50}
+        ]
+    },
+    {
+        "nom": "Soupe de légumes d'hiver",
+        "temps_prep": 35,
+        "image_url": "https://images.unsplash.com/photo-1547592180-85f173990554?w=500",
+        "ingredients": [
+            {"tag": "pommes_de_terre", "besoin_grammes": 150},
+            {"tag": "carottes", "besoin_grammes": 150},
+            {"tag": "poireaux", "besoin_grammes": 100},
+            {"tag": "oignons", "besoin_grammes": 50}
+        ]
+    },
+    {
+        "nom": "Velouté de potimarron",
+        "temps_prep": 30,
+        "image_url": "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?w=500",
+        "ingredients": [
+            {"tag": "potimarron", "besoin_grammes": 300},
+            {"tag": "creme", "besoin_grammes": 50},
+            {"tag": "oignons", "besoin_grammes": 50}
+        ]
+    },
+    {
+        "nom": "Salade César au poulet",
+        "temps_prep": 15,
+        "image_url": "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=500",
+        "ingredients": [
+            {"tag": "salade", "besoin_grammes": 100},
+            {"tag": "poulet", "besoin_grammes": 120},
+            {"tag": "pain", "besoin_grammes": 30},
+            {"tag": "fromage_rape", "besoin_grammes": 20}
+        ]
+    },
+    {
+        "nom": "Quiche Lorraine",
+        "temps_prep": 40,
+        "image_url": "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?w=500",
+        "ingredients": [
+            {"tag": "pate_brisee", "besoin_grammes": 60},
+            {"tag": "lardons", "besoin_grammes": 75},
+            {"tag": "oeufs", "besoin_grammes": 100},
+            {"tag": "creme", "besoin_grammes": 100},
+            {"tag": "fromage_rape", "besoin_grammes": 30}
+        ]
+    },
+    {
+        "nom": "Tartiflette traditionnelle",
+        "temps_prep": 45,
+        "image_url": "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?w=500",
+        "ingredients": [
+            {"tag": "pommes_de_terre", "besoin_grammes": 250},
+            {"tag": "reblochon", "besoin_grammes": 125},
+            {"tag": "lardons", "besoin_grammes": 75},
+            {"tag": "oignons", "besoin_grammes": 50}
+        ]
+    },
+    {
+        "nom": "Fondue de poireaux au saumon",
+        "temps_prep": 25,
+        "image_url": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=500",
+        "ingredients": [
+            {"tag": "poireaux", "besoin_grammes": 200},
+            {"tag": "pave_saumon", "besoin_grammes": 130},
+            {"tag": "creme", "besoin_grammes": 50}
+        ]
+    },
+    {
+        "nom": "Saumon Teriyaki",
+        "temps_prep": 20,
+        "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=500",
+        "ingredients": [
+            {"tag": "pave_saumon", "besoin_grammes": 130},
+            {"tag": "riz", "besoin_grammes": 80},
+            {"tag": "sauce_teriyaki", "besoin_grammes": 30}
+        ]
+    },
+    {
+        "nom": "Cabillaud en papillote",
+        "temps_prep": 25,
+        "image_url": "https://images.unsplash.com/photo-1534604973900-c43ab4c2e0ab?w=500",
+        "ingredients": [
+            {"tag": "dos_cabillaud", "besoin_grammes": 140},
+            {"tag": "courgettes", "besoin_grammes": 100},
+            {"tag": "carottes", "besoin_grammes": 100},
+            {"tag": "huile_olive", "besoin_grammes": 15}
+        ]
+    },
+    {
+        "nom": "Risotto aux champignons",
+        "temps_prep": 35,
+        "image_url": "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=500",
+        "ingredients": [
+            {"tag": "riz_arborio", "besoin_grammes": 80},
+            {"tag": "champignons", "besoin_grammes": 120},
+            {"tag": "oignons", "besoin_grammes": 40},
+            {"tag": "fromage_rape", "besoin_grammes": 25}
+        ]
+    },
+    {
+        "nom": "Omelette aux champignons",
+        "temps_prep": 10,
+        "image_url": "https://images.unsplash.com/photo-1494597564530-871f2b93ac55?w=500",
+        "ingredients": [
+            {"tag": "oeufs", "besoin_grammes": 150},
+            {"tag": "champignons", "besoin_grammes": 100},
+            {"tag": "beurre", "besoin_grammes": 15}
+        ]
+    },
+    {
+        "nom": "Galette complète bretonne",
+        "temps_prep": 15,
+        "image_url": "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=500",
+        "ingredients": [
+            {"tag": "galette_sarrasin", "besoin_grammes": 50},
+            {"tag": "jambon", "besoin_grammes": 50},
+            {"tag": "oeufs", "besoin_grammes": 50},
+            {"tag": "fromage_rape", "besoin_grammes": 30}
+        ]
+    },
+    {
+        "nom": "Gratin de courgettes",
+        "temps_prep": 40,
+        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500",
+        "ingredients": [
+            {"tag": "courgettes", "besoin_grammes": 250},
+            {"tag": "creme", "besoin_grammes": 80},
+            {"tag": "oeufs", "besoin_grammes": 50},
+            {"tag": "fromage_rape", "besoin_grammes": 40}
+        ]
+    },
+    {
+        "nom": "Ratatouille niçoise",
+        "temps_prep": 50,
+        "image_url": "https://images.unsplash.com/photo-1572453860999-1adfd3a24a9d?w=500",
+        "ingredients": [
+            {"tag": "courgettes", "besoin_grammes": 100},
+            {"tag": "aubergines", "besoin_grammes": 100},
+            {"tag": "poivrons", "besoin_grammes": 80},
+            {"tag": "tomates_conserve", "besoin_grammes": 120}
+        ]
+    },
+    {
+        "nom": "Poulet rôti et frites maison",
+        "temps_prep": 60,
+        "image_url": "https://images.unsplash.com/photo-1562967914-608f82629710?w=500",
+        "ingredients": [
+            {"tag": "poulet", "besoin_grammes": 180},
+            {"tag": "pommes_de_terre", "besoin_grammes": 200},
+            {"tag": "huile_olive", "besoin_grammes": 20}
+        ]
+    },
+    {
+        "nom": "Bœuf Bourguignon",
+        "temps_prep": 120,
+        "image_url": "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500",
+        "ingredients": [
+            {"tag": "boeuf_bourguignon", "besoin_grammes": 180},
+            {"tag": "carottes", "besoin_grammes": 100},
+            {"tag": "champignons", "besoin_grammes": 60},
+            {"tag": "lardons", "besoin_grammes": 40},
+            {"tag": "oignons", "besoin_grammes": 40}
+        ]
+    },
+    {
+        "nom": "Hachis Parmentier",
+        "temps_prep": 45,
+        "image_url": "https://images.unsplash.com/photo-1621510456680-233013de31b7?w=500",
+        "ingredients": [
+            {"tag": "boeuf_hache", "besoin_grammes": 150},
+            {"tag": "pommes_de_terre", "besoin_grammes": 250},
+            {"tag": "lait", "besoin_grammes": 50},
+            {"tag": "beurre", "besoin_grammes": 15},
+            {"tag": "fromage_rape", "besoin_grammes": 25}
+        ]
+    },
+    {
+        "nom": "Lasagnes à la Bolognaise",
+        "temps_prep": 55,
+        "image_url": "https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=500",
+        "ingredients": [
+            {"tag": "plaques_lasagne", "besoin_grammes": 60},
+            {"tag": "boeuf_hache", "besoin_grammes": 120},
+            {"tag": "tomates_conserve", "besoin_grammes": 150},
+            {"tag": "creme", "besoin_grammes": 100},
+            {"tag": "fromage_rape", "besoin_grammes": 40}
+        ]
+    },
+    {
+        "nom": "Spaghetti Bolognaise",
+        "temps_prep": 30,
+        "image_url": "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500",
+        "ingredients": [
+            {"tag": "pates", "besoin_grammes": 100},
+            {"tag": "boeuf_hache", "besoin_grammes": 120},
+            {"tag": "tomates_conserve", "besoin_grammes": 150},
+            {"tag": "oignons", "besoin_grammes": 40}
+        ]
+    },
+    {
+        "nom": "Salade Tomate Mozzarella",
+        "temps_prep": 10,
+        "image_url": "https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?w=500",
+        "ingredients": [
+            {"tag": "tomates_fraiches", "besoin_grammes": 150},
+            {"tag": "mozzarella", "besoin_grammes": 100},
+            {"tag": "huile_olive", "besoin_grammes": 15}
+        ]
+    },
+    {
+        "nom": "Avocat garni au thon",
+        "temps_prep": 10,
+        "image_url": "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500",
+        "ingredients": [
+            {"tag": "avocat", "besoin_grammes": 150},
+            {"tag": "thon_conserve", "besoin_grammes": 80},
+            {"tag": "mayonnaise", "besoin_grammes": 20}
+        ]
+    },
+    {
+        "nom": "Croque-monsieur Classique",
+        "temps_prep": 15,
+        "image_url": "https://images.unsplash.com/photo-1475090169767-40ed8d18f67d?w=500",
+        "ingredients": [
+            {"tag": "pain_de_mie", "besoin_grammes": 60},
+            {"tag": "jambon", "besoin_grammes": 40},
+            {"tag": "fromage_rape", "besoin_grammes": 30},
+            {"tag": "beurre", "besoin_grammes": 10}
+        ]
+    },
+    {
+        "nom": "Burger Maison Éco",
+        "temps_prep": 20,
+        "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500",
+        "ingredients": [
+            {"tag": "pain_burger", "besoin_grammes": 70},
+            {"tag": "steak_hache", "besoin_grammes": 100},
+            {"tag": "fromage_burger", "besoin_grammes": 20},
+            {"tag": "tomates_fraiches", "besoin_grammes": 30}
+        ]
+    },
+    {
+        "nom": "Fajitas au Poulet",
+        "temps_prep": 25,
+        "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500",
+        "ingredients": [
+            {"tag": "tortillas", "besoin_grammes": 80},
+            {"tag": "poulet", "besoin_grammes": 120},
+            {"tag": "poivrons", "besoin_grammes": 80},
+            {"tag": "oignons", "besoin_grammes": 40}
+        ]
+    },
+    {
+        "nom": "Tacos au Bœuf",
+        "temps_prep": 20,
+        "image_url": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500",
+        "ingredients": [
+            {"tag": "tortillas", "besoin_grammes": 80},
+            {"tag": "boeuf_hache", "besoin_grammes": 120},
+            {"tag": "salade", "besoin_grammes": 40},
+            {"tag": "fromage_rape", "besoin_grammes": 20}
+        ]
+    },
+    {
+        "nom": "Wok de crevettes aux nouilles",
+        "temps_prep": 20,
+        "image_url": "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=500",
+        "ingredients": [
+            {"tag": "nouilles", "besoin_grammes": 80},
+            {"tag": "crevettes", "besoin_grammes": 100},
+            {"tag": "courgettes", "besoin_grammes": 80},
+            {"tag": "carottes", "besoin_grammes": 80}
+        ]
+    },
+    {
+        "nom": "Brandade de morue express",
+        "temps_prep": 30,
+        "image_url": "https://images.unsplash.com/photo-1621510456680-233013de31b7?w=500",
+        "ingredients": [
+            {"tag": "cabillaud", "besoin_grammes": 150},
+            {"tag": "pommes_de_terre", "besoin_grammes": 200},
+            {"tag": "lait", "besoin_grammes": 50},
+            {"tag": "huile_olive", "besoin_grammes": 20}
+        ]
+    },
+    {
+        "nom": "Tian de légumes d'été",
+        "temps_prep": 45,
+        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500",
+        "ingredients": [
+            {"tag": "courgettes", "besoin_grammes": 120},
+            {"tag": "aubergines", "besoin_grammes": 120},
+            {"tag": "tomates_fraiches", "besoin_grammes": 120},
+            {"tag": "huile_olive", "besoin_grammes": 15}
+        ]
+    },
+    {
+        "nom": "Gratin de pâtes au thon",
+        "temps_prep": 25,
+        "image_url": "https://images.unsplash.com/photo-1546549032-9571cd6b27df?w=500",
+        "ingredients": [
+            {"tag": "pates", "besoin_grammes": 100},
+            {"tag": "thon_conserve", "besoin_grammes": 100},
+            {"tag": "tomates_conserve", "besoin_grammes": 150},
+            {"tag": "fromage_rape", "besoin_grammes": 30}
+        ]
+    },
+    {
+        "nom": "Dahl de lentilles corail",
+        "temps_prep": 25,
+        "image_url": "https://images.unsplash.com/photo-1545093149-618ce3bcf499?w=500",
+        "ingredients": [
+            {"tag": "lentilles_corail", "besoin_grammes": 100},
+            {"tag": "tomates_conserve", "besoin_grammes": 150},
+            {"tag": "lait_de_coco", "besoin_grammes": 100},
+            {"tag": "oignons", "besoin_grammes": 40}
+        ]
+    },
+    {
+        "nom": "Purée de patate douce au poulet",
+        "temps_prep": 30,
+        "image_url": "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=500",
+        "ingredients": [
+            {"tag": "patate_douce", "besoin_grammes": 250},
+            {"tag": "poulet", "besoin_grammes": 130},
+            {"tag": "beurre", "besoin_grammes": 15}
+        ]
+    },
+    {
+        "nom": "Poulet Basquaise",
+        "temps_prep": 50,
+        "image_url": "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=500",
+        "ingredients": [
+            {"tag": "poulet", "besoin_grammes": 150},
+            {"tag": "poivrons", "besoin_grammes": 120},
+            {"tag": "tomates_conserve", "besoin_grammes": 150},
+            {"tag": "oignons", "besoin_grammes": 50}
+        ]
+    },
+    {
+        "nom": "Shakshuka aux œufs",
+        "temps_prep": 20,
+        "image_url": "https://images.unsplash.com/photo-1590412200988-a436bb7050a8?w=500",
+        "ingredients": [
+            {"tag": "tomates_conserve", "besoin_grammes": 200},
+            {"tag": "poivrons", "besoin_grammes": 80},
+            {"tag": "oeufs", "besoin_grammes": 100},
+            {"tag": "oignons", "besoin_grammes": 40}
+        ]
+    },
+    {
+        "nom": "Salade Niçoise simplifiée",
+        "temps_prep": 15,
+        "image_url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500",
+        "ingredients": [
+            {"tag": "salade", "besoin_grammes": 80},
+            {"tag": "thon_conserve", "besoin_grammes": 80},
+            {"tag": "oeufs", "besoin_grammes": 50},
+            {"tag": "pommes_de_terre", "besoin_grammes": 100},
+            {"tag": "haricots_verts", "besoin_grammes": 50}
+        ]
+    },
+    {
+        "nom": "Wrap au saumon fumé",
+        "temps_prep": 10,
+        "image_url": "https://images.unsplash.com/photo-1626700051175-6518c4793f4f?w=500",
+        "ingredients": [
+            {"tag": "tortillas", "besoin_grammes": 50},
+            {"tag": "saumon_fume", "besoin_grammes": 70},
+            {"tag": "creme", "besoin_grammes": 30},
+            {"tag": "salade", "besoin_grammes": 30}
+        ]
+    },
+    {
+        "nom": "Porc au caramel express",
+        "temps_prep": 25,
+        "image_url": "https://images.unsplash.com/photo-1544025162-d76694265947?w=500",
+        "ingredients": [
+            {"tag": "escalope_porc", "besoin_grammes": 150},
+            {"tag": "riz", "besoin_grammes": 80},
+            {"tag": "sucre", "besoin_grammes": 25}
+        ]
+    },
+    {
+        "nom": "Colin à la bordelaise",
+        "temps_prep": 25,
+        "image_url": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=500",
+        "ingredients": [
+            {"tag": "colin", "besoin_grammes": 140},
+            {"tag": "chapelure", "besoin_grammes": 20},
+            {"tag": "beurre", "besoin_grammes": 15},
+            {"tag": "riz", "besoin_grammes": 80}
+        ]
+    },
+    {
+        "nom": "Rougail Saucisse étudiant",
+        "temps_prep": 30,
+        "image_url": "https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=500",
+        "ingredients": [
+            {"tag": "saucisses", "besoin_grammes": 150},
+            {"tag": "tomates_conserve", "besoin_grammes": 150},
+            {"tag": "riz", "besoin_grammes": 80},
+            {"tag": "oignons", "besoin_grammes": 50}
+        ]
+    },
+    {
+        "nom": "Salade de lentilles au thon",
+        "temps_prep": 15,
+        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500",
+        "ingredients": [
+            {"tag": "lentilles", "besoin_grammes": 120},
+            {"tag": "thon_conserve", "besoin_grammes": 80},
+            {"tag": "oignons", "besoin_grammes": 30}
+        ]
+    },
+    {
+        "nom": "Gnocchis sauce tomate basilic",
+        "temps_prep": 15,
+        "image_url": "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=500",
+        "ingredients": [
+            {"tag": "gnocchis", "besoin_grammes": 200},
+            {"tag": "tomates_conserve", "besoin_grammes": 120},
+            {"tag": "fromage_rape", "besoin_grammes": 25}
+        ]
+    },
+    {
+        "nom": "Curry de crevettes au lait de coco",
+        "temps_prep": 20,
+        "image_url": "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=500",
+        "ingredients": [
+            {"tag": "crevettes", "besoin_grammes": 120},
+            {"tag": "lait_de_coco", "besoin_grammes": 100},
+            {"tag": "riz", "besoin_grammes": 80}
+        ]
+    },
+    {
+        "nom": "One Pot Pasta aux légumes",
+        "temps_prep": 20,
+        "image_url": "https://images.unsplash.com/photo-1556761223-4c4282c73f77?w=500",
+        "ingredients": [
+            {"tag": "pates", "besoin_grammes": 100},
+            {"tag": "tomates_conserve", "besoin_grammes": 100},
+            {"tag": "courgettes", "besoin_grammes": 80},
+            {"tag": "oignons", "besoin_grammes": 30}
+        ]
+    },
+    {
+        "nom": "Tagliatelles au saumon crème",
+        "temps_prep": 20,
+        "image_url": "https://images.unsplash.com/photo-1621996346565-e3bb646459a6?w=500",
+        "ingredients": [
+            {"tag": "pates", "besoin_grammes": 100},
+            {"tag": "saumon_fume", "besoin_grammes": 60},
+            {"tag": "creme", "besoin_grammes": 60}
+        ]
+    },
+    {
+        "nom": "Chili sin Carne (Végétarien)",
+        "temps_prep": 30,
+        "image_url": "https://images.unsplash.com/photo-1541832676-9b763b0239ab?w=500",
+        "ingredients": [
+            {"tag": "haricots_rouges", "besoin_grammes": 150},
+            {"tag": "tomates_conserve", "besoin_grammes": 150},
+            {"tag": "maïs", "besoin_grammes": 50},
+            {"tag": "riz", "besoin_grammes": 80}
+        ]
+    },
+    {
+        "nom": "Blanquette de dinde économique",
+        "temps_prep": 45,
+        "image_url": "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=500",
+        "ingredients": [
+            {"tag": "escalope_dinde", "besoin_grammes": 150},
+            {"tag": "carottes", "besoin_grammes": 100},
+            {"tag": "champignons", "besoin_grammes": 60},
+            {"tag": "creme", "besoin_grammes": 50},
+            {"tag": "riz", "besoin_grammes": 80}
+        ]
+    },
+    {
+        "nom": "Épinards à la crème et œufs pochés",
+        "temps_prep": 15,
+        "image_url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500",
+        "ingredients": [
+            {"tag": "epinards", "besoin_grammes": 250},
+            {"tag": "creme", "besoin_grammes": 40},
+            {"tag": "oeufs", "besoin_grammes": 100}
+        ]
+    },
+    {
+        "nom": "Riz au lait vanille (Dessert/En-cas)",
+        "temps_prep": 35,
+        "image_url": "https://images.unsplash.com/photo-1532634922-8fe0b757fb13?w=500",
+        "ingredients": [
+            {"tag": "riz", "besoin_grammes": 50},
+            {"tag": "lait", "besoin_grammes": 200},
+            {"tag": "sucre", "besoin_grammes": 20}
+        ]
+    }
+]

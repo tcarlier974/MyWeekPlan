@@ -1,0 +1,514 @@
+[
+  {
+    "url_produit": "produit_fantome_lentilles",
+    "nom_produit": "Lentilles (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "lentilles",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_saucisses",
+    "nom_produit": "Saucisses (à compléter)",
+    "prix": 0,
+    "rayon": "Boucherie & Poissonnerie",
+    "tag_ingredient": "saucisses",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_carottes",
+    "nom_produit": "Carottes (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "carottes",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_oignons",
+    "nom_produit": "Oignons (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "oignons",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_escalope_porc",
+    "nom_produit": "Escalope de porc (à compléter)",
+    "prix": 0,
+    "rayon": "Boucherie & Poissonnerie",
+    "tag_ingredient": "escalope_porc",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_creme",
+    "nom_produit": "Crème fraîche (à compléter)",
+    "prix": 0,
+    "rayon": "Frais & Crémerie",
+    "tag_ingredient": "creme",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_champignons",
+    "nom_produit": "Champignons frais (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "champignons",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_pois_chiches",
+    "nom_produit": "Pois chiches en conserve (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "pois_chiches",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_lait_de_coco",
+    "nom_produit": "Lait de coco (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "lait_de_coco",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_tomates_conserve",
+    "nom_produit": "Pulpe de tomates (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "tomates_conserve",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_riz",
+    "nom_produit": "Riz (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "riz",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_semoule",
+    "nom_produit": "Semoule (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "semoule",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_poulet",
+    "nom_produit": "Poulet (à compléter)",
+    "prix": 0,
+    "rayon": "Boucherie & Poissonnerie",
+    "tag_ingredient": "poulet",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_courgettes",
+    "nom_produit": "Courgettes (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "courgettes",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_pommes_de_terre",
+    "nom_produit": "Pommes de terre (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "pommes_de_terre",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_poireaux",
+    "nom_produit": "Poireaux (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "poireaux",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_potimarron",
+    "nom_produit": "Potimarron (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "potimarron",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_salade",
+    "nom_produit": "Salade (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "salade",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_pain",
+    "nom_produit": "Pain (à compléter)",
+    "prix": 0,
+    "rayon": "Boulangerie",
+    "tag_ingredient": "pain",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_fromage_rape",
+    "nom_produit": "Fromage râpé (à compléter)",
+    "prix": 0,
+    "rayon": "Frais & Crémerie",
+    "tag_ingredient": "fromage_rape",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_pate_brisee",
+    "nom_produit": "Pâte brisée (à compléter)",
+    "prix": 0,
+    "rayon": "Frais & Crémerie",
+    "tag_ingredient": "pate_brisee",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_lardons",
+    "nom_produit": "Lardons (à compléter)",
+    "prix": 0,
+    "rayon": "Boucherie & Poissonnerie",
+    "tag_ingredient": "lardons",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_oeufs",
+    "nom_produit": "Oeufs (à compléter)",
+    "prix": 0,
+    "rayon": "Frais & Crémerie",
+    "tag_ingredient": "oeufs",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_reblochon",
+    "nom_produit": "Reblochon (à compléter)",
+    "prix": 0,
+    "rayon": "Frais & Crémerie",
+    "tag_ingredient": "reblochon",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_pave_saumon",
+    "nom_produit": "Pavé de saumon (à compléter)",
+    "prix": 0,
+    "rayon": "Boucherie & Poissonnerie",
+    "tag_ingredient": "pave_saumon",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_sauce_teriyaki",
+    "nom_produit": "Sauce Teriyaki (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "sauce_teriyaki",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_dos_cabillaud",
+    "nom_produit": "Dos de cabillaud (à compléter)",
+    "prix": 0,
+    "rayon": "Boucherie & Poissonnerie",
+    "tag_ingredient": "dos_cabillaud",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_huile_olive",
+    "nom_produit": "Huile d'olive (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "huile_olive",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_riz_arborio",
+    "nom_produit": "Riz Arborio (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "riz_arborio",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_beurre",
+    "nom_produit": "Beurre (à compléter)",
+    "prix": 0,
+    "rayon": "Frais & Crémerie",
+    "tag_ingredient": "beurre",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_galette_sarrasin",
+    "nom_produit": "Galettes de sarrasin (à compléter)",
+    "prix": 0,
+    "rayon": "Frais & Crémerie",
+    "tag_ingredient": "galette_sarrasin",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_aubergines",
+    "nom_produit": "Aubergines (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "aubergines",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_poivrons",
+    "nom_produit": "Poivrons (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "poivrons",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_boeuf_bourguignon",
+    "nom_produit": "Viande à Bourguignon (à compléter)",
+    "prix": 0,
+    "rayon": "Boucherie & Poissonnerie",
+    "tag_ingredient": "boeuf_bourguignon",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_boeuf_hache",
+    "nom_produit": "Boeuf haché (à compléter)",
+    "prix": 0,
+    "rayon": "Boucherie & Poissonnerie",
+    "tag_ingredient": "boeuf_hache",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_lait",
+    "nom_produit": "Lait (à compléter)",
+    "prix": 0,
+    "rayon": "Frais & Crémerie",
+    "tag_ingredient": "lait",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_plaques_lasagne",
+    "nom_produit": "Plaques à lasagnes (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "plaques_lasagne",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_tomates_fraiches",
+    "nom_produit": "Tomates fraîches (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "tomates_fraiches",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_mozzarella",
+    "nom_produit": "Mozzarella (à compléter)",
+    "prix": 0,
+    "rayon": "Frais & Crémerie",
+    "tag_ingredient": "mozzarella",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_avocat",
+    "nom_produit": "Avocat (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "avocat",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_thon_conserve",
+    "nom_produit": "Thon en boîte (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "thon_conserve",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_mayonnaise",
+    "nom_produit": "Mayonnaise (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "mayonnaise",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_pain_de_mie",
+    "nom_produit": "Pain de mie (à compléter)",
+    "prix": 0,
+    "rayon": "Boulangerie",
+    "tag_ingredient": "pain_de_mie",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_jambon",
+    "nom_produit": "Jambon blanc (à compléter)",
+    "prix": 0,
+    "rayon": "Frais & Crémerie",
+    "tag_ingredient": "jambon",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_pain_burger",
+    "nom_produit": "Pains burger (à compléter)",
+    "prix": 0,
+    "rayon": "Boulangerie",
+    "tag_ingredient": "pain_burger",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_steak_hache",
+    "nom_produit": "Steak haché (à compléter)",
+    "prix": 0,
+    "rayon": "Boucherie & Poissonnerie",
+    "tag_ingredient": "steak_hache",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_fromage_burger",
+    "nom_produit": "Fromage à burger (à compléter)",
+    "prix": 0,
+    "rayon": "Frais & Crémerie",
+    "tag_ingredient": "fromage_burger",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_tortillas",
+    "nom_produit": "Tortillas (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "tortillas",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_nouilles",
+    "nom_produit": "Nouilles asiatiques (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "nouilles",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_crevettes",
+    "nom_produit": "Crevettes (à compléter)",
+    "prix": 0,
+    "rayon": "Boucherie & Poissonnerie",
+    "tag_ingredient": "crevettes",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_cabillaud",
+    "nom_produit": "Cabillaud (à compléter)",
+    "prix": 0,
+    "rayon": "Boucherie & Poissonnerie",
+    "tag_ingredient": "cabillaud",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_lentilles_corail",
+    "nom_produit": "Lentilles corail (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "lentilles_corail",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_patate_douce",
+    "nom_produit": "Patate douce (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "patate_douce",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_saumon_fume",
+    "nom_produit": "Saumon fumé (à compléter)",
+    "prix": 0,
+    "rayon": "Frais & Crémerie",
+    "tag_ingredient": "saumon_fume",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_sucre",
+    "nom_produit": "Sucre en poudre (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie sucrée",
+    "tag_ingredient": "sucre",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_colin",
+    "nom_produit": "Colin (surgelé) (à compléter)",
+    "prix": 0,
+    "rayon": "Surgelés",
+    "tag_ingredient": "colin",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_chapelure",
+    "nom_produit": "Chapelure (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "chapelure",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_gnocchis",
+    "nom_produit": "Gnocchis (à compléter)",
+    "prix": 0,
+    "rayon": "Frais & Crémerie",
+    "tag_ingredient": "gnocchis",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_haricots_rouges",
+    "nom_produit": "Haricots rouges (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "haricots_rouges",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_maïs",
+    "nom_produit": "Maïs en conserve (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "maïs",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_escalope_dinde",
+    "nom_produit": "Escalope de dinde (à compléter)",
+    "prix": 0,
+    "rayon": "Boucherie & Poissonnerie",
+    "tag_ingredient": "escalope_dinde",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_epinards",
+    "nom_produit": "Épinards (à compléter)",
+    "prix": 0,
+    "rayon": "Surgelés",
+    "tag_ingredient": "epinards",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_haricots_verts",
+    "nom_produit": "Haricots verts (à compléter)",
+    "prix": 0,
+    "rayon": "Fruits & Légumes",
+    "tag_ingredient": "haricots_verts",
+    "poids_grammes": 0
+  },
+  {
+    "url_produit": "produit_fantome_pates",
+    "nom_produit": "Pâtes (à compléter)",
+    "prix": 0,
+    "rayon": "Épicerie salée",
+    "tag_ingredient": "pates",
+    "poids_grammes": 0
+  }
+]

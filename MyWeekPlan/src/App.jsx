@@ -18,6 +18,7 @@ function App() {
   const [shoppingList, setShoppingList] = useState(null)
   const [checkedItems, setCheckedItems] = useState({})
   const [rerollingIndex, setRerollingIndex] = useState(null)
+  const [selectedRecipe, setSelectedRecipe] = useState(null)
 
   const handleGenerateMenuClick = async () => {
     setIsLoading(true)
@@ -125,27 +126,27 @@ function App() {
 
           <div className="meal-list">
             {menu.map((repas, index) => (
-              <div key={index} className="meal-item">
-                
-                {/* AJOUT DE L'IMAGE ICI */}
+              <div key={index} 
+                className="meal-item" 
+                onClick={() => setSelectedRecipe(repas)} 
+                style={{ cursor: 'pointer' }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <img 
-                    src={repas.image_url || 'https://via.placeholder.com/60?text=Miam'} 
-                    alt={repas.nom} 
-                    className="meal-image" 
-                  />
-                  
+                  <img src={repas.image_url || 'https://via.placeholder.com/60?text=Miam'} alt={repas.nom} className="meal-image" />
                   <div className="meal-item-left">
                     <h3>{repas.nom}</h3>
                     <p>⏱ {repas.temps_prep} min</p>
                   </div>
                 </div>
-                
+
                 <div className="meal-price-container">
                   <span className="meal-price">{repas.prixCalcule.toFixed(2)} €</span>
                   <button 
                     className={`btn-reroll ${rerollingIndex === index ? 'spinning' : ''}`}
-                    onClick={() => handleRerollMeal(index)}
+                    onClick={(e) => { 
+                      e.stopPropagation(); // EMPÊCHE D'OUVRIR LA RECETTE QUAND ON CLIQUE SUR REROLL
+                      handleRerollMeal(index) 
+                    }}
                     disabled={rerollingIndex !== null}
                   >
                     🔄
@@ -179,6 +180,45 @@ function App() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+      {/* --- LA MODALE DE DÉTAIL RECETTE --- */}
+      {selectedRecipe && (
+        <div className="modal-overlay" onClick={() => setSelectedRecipe(null)}>
+
+          {/* stopPropagation empêche la modale de se fermer si on clique sur la carte blanche */}
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="btn-close" onClick={() => setSelectedRecipe(null)}>✕</button>
+
+            <img 
+              src={selectedRecipe.image_url || 'https://via.placeholder.com/400?text=Miam'} 
+              alt={selectedRecipe.nom} 
+              className="modal-img" 
+            />
+
+            <div className="modal-body">
+              <h2>{selectedRecipe.nom}</h2>
+              <div className="modal-meta">
+                ⏱ {selectedRecipe.temps_prep} min • 👤 Pour {portions} personne(s)
+              </div>
+
+              <h3 style={{ marginTop: '24px', marginBottom: '12px' }}>Ingrédients</h3>
+              <div>
+                {selectedRecipe.ingredients && selectedRecipe.ingredients.map((ing, i) => (
+                  <span key={i} className="ingredient-pill">
+                    {/* On multiplie par le nombre de portions ! */}
+                    <span className="ingredient-qty">{(ing.besoin_grammes * portions).toString().replace('.', ',')}g</span> 
+                    {ing.tag.replace(/_/g, ' ')}
+                  </span>
+                ))}
+              </div>
+
+              <h3 style={{ marginTop: '24px', marginBottom: '12px' }}>Préparation</h3>
+              <p style={{ color: 'var(--text-light)', lineHeight: '1.6' }}>
+                {selectedRecipe.instructions || "Les instructions de préparation n'ont pas encore été ajoutées pour cette recette."}
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>
