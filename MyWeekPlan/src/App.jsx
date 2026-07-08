@@ -80,7 +80,6 @@ function App() {
   const [mealsCount, setMealsCount] = useState(7)
   // NOUVEAU : On définit 2 portions par défaut
   const [portions, setPortions] = useState(2) 
-  const [budget, setBudget] = useState(50);
   const [inventaireFrigo, setInventaireFrigo] = useState([]);
   const handleUpdateFrigo = (tag, nouvelleQuantite) => {
     setInventaireFrigo(prev => prev.map(item => 
