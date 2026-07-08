@@ -41,44 +41,68 @@ const formatQuantity = (tag, quantite) => {
   return `${quantite} ${isLiquid ? 'ml' : 'g'}`;
 };
 
-const SectionFrigo = ({ inventaireFrigo, onUpdateQuantite }) => {
-  // Si le frigo n'a pas encore chargé ses données depuis Supabase
-  if (!inventaireFrigo || inventaireFrigo.length === 0) {
-    return (
-      <div className="frigo-container" style={{ marginTop: '32px', background: '#F9FAFB', padding: '20px', borderRadius: '16px', textAlign: 'center' }}>
-        <h3 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>🥶 Dans mon frigo</h3>
-        <p style={{ color: '#6B7280', fontSize: '0.85rem' }}>
-          Aucun ingrédient trouvé. Ajoute des lignes dans ta table Supabase `inventaire_frigo` pour les voir ici !
-        </p>
-      </div>
-    );
-  }
+const SectionFrigo = ({ inventaireFrigo, tagsDisponibles, onUpdateQuantite, onAjouterItem }) => {
+  // Petit state local juste pour gérer le menu déroulant
+  const [tagSelectionne, setTagSelectionne] = useState("");
+
+  const gererAjout = () => {
+    onAjouterItem(tagSelectionne);
+    setTagSelectionne(""); // On remet le select à zéro après ajout
+  };
 
   return (
     <div className="frigo-container" style={{ marginTop: '32px', background: '#F9FAFB', padding: '20px', borderRadius: '16px' }}>
-      <h3 style={{ fontSize: '1.1rem', marginBottom: '16px' }}>🥶 Dans mon frigo (Éviter le gaspillage)</h3>
+      <h3 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>🥶 Dans mon frigo</h3>
       <p style={{ color: '#6B7280', fontSize: '0.85rem', marginBottom: '16px' }}>
-        Renseigne ce que tu as déjà chez toi. L'algorithme déduira ces quantités de ton budget !
+        Ajoute tes restes. L'algorithme les déduira de tes courses et adaptera tes repas !
       </p>
       
-      <div style={{ display: 'grid', gap: '12px' }}>
-        {inventaireFrigo.map(item => (
-          <div key={item.id || item.tag_ingredient} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'white', padding: '12px 16px', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-            <span style={{ fontWeight: '600', textTransform: 'capitalize' }}>
-              {item.tag_ingredient.replace(/_/g, ' ')}
-            </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input 
-                type="number" 
-                value={item.quantite_accumulee} 
-                onChange={(e) => onUpdateQuantite(item.tag_ingredient, Number(e.target.value))}
-                style={{ width: '80px', padding: '6px', border: '1px solid #E5E7EB', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}
-              />
-              <span style={{ color: '#9CA3AF', fontSize: '0.9rem' }}>g / ml</span>
-            </div>
-          </div>
-        ))}
+      {/* --- BARRE D'AJOUT --- */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        <select 
+          value={tagSelectionne} 
+          onChange={(e) => setTagSelectionne(e.target.value)}
+          style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #E5E7EB' }}
+        >
+          <option value="">+ Ajouter un ingrédient...</option>
+          {tagsDisponibles.map(tag => (
+            <option key={tag} value={tag}>{tag.replace(/_/g, ' ')}</option>
+          ))}
+        </select>
+        <button 
+          onClick={gererAjout}
+          disabled={!tagSelectionne}
+          style={{ padding: '10px 16px', background: tagSelectionne ? '#3B82F6' : '#D1D5DB', color: 'white', border: 'none', borderRadius: '8px', cursor: tagSelectionne ? 'pointer' : 'not-allowed', fontWeight: 'bold' }}
+        >
+          Ajouter
+        </button>
       </div>
+
+      {/* --- LISTE DES INGRÉDIENTS --- */}
+      {inventaireFrigo.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '10px', color: '#9CA3AF', fontStyle: 'italic' }}>
+          Ton frigo est vide pour le moment.
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: '12px' }}>
+          {inventaireFrigo.map(item => (
+            <div key={item.tag_ingredient} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'white', padding: '12px 16px', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+              <span style={{ fontWeight: '600', textTransform: 'capitalize' }}>
+                {item.tag_ingredient.replace(/_/g, ' ')}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input 
+                  type="number" 
+                  value={item.quantite_accumulee} 
+                  onChange={(e) => onUpdateQuantite(item.tag_ingredient, Number(e.target.value))}
+                  style={{ width: '80px', padding: '6px', border: '1px solid #E5E7EB', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}
+                />
+                <span style={{ color: '#9CA3AF', fontSize: '0.9rem' }}>g / ml</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -91,13 +115,6 @@ function App() {
   // NOUVEAU : On définit 2 portions par défaut
   const [portions, setPortions] = useState(2) 
   const [inventaireFrigo, setInventaireFrigo] = useState([]);
-  const handleUpdateFrigo = (tag, nouvelleQuantite) => {
-    setInventaireFrigo(prev => prev.map(item => 
-      item.tag_ingredient === tag 
-        ? { ...item, quantite_accumulee: nouvelleQuantite } 
-        : item
-    ));
-  };
   const [menu, setMenu] = useState([])
   const [totalCost, setTotalCost] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
@@ -106,14 +123,14 @@ function App() {
   const [checkedItems, setCheckedItems] = useState({})
   const [rerollingIndex, setRerollingIndex] = useState(null)
   const [selectedRecipe, setSelectedRecipe] = useState(null)
-
+  
   const handleGenerateMenuClick = async () => {
     setIsLoading(true)
     setErrorMsg('')
     
     // On passe la variable portions au solveur
     const resultat = await generateWeeklyMenu(budget, mealsCount, portions)
-
+    
     if (resultat.erreur) {
       setErrorMsg(resultat.erreur)
     } else {
@@ -123,7 +140,7 @@ function App() {
     }
     setIsLoading(false)
   }
-
+  
   const handleRerollMeal = async (index) => {
     setRerollingIndex(index) 
     
@@ -143,7 +160,7 @@ function App() {
     
     setRerollingIndex(null)
   }
-
+  
   const handleGenerateListClick = async () => {
     setIsLoading(true)
     // On passe la variable portions
@@ -152,23 +169,67 @@ function App() {
     setCurrentStep(3)
     setIsLoading(false)
   }
-
+  
   const toggleCheck = (itemId) => {
     setCheckedItems(prev => ({ ...prev, [itemId]: !prev[itemId] }))
   }
+  
+  const handleUpdateFrigo = async (tag, nouvelleQuantite) => {
+      // 1. Mise à jour visuelle instantanée pour ne pas bloquer l'utilisateur
+      setInventaireFrigo(prev => prev.map(item => 
+        item.tag_ingredient === tag 
+          ? { ...item, quantite_accumulee: nouvelleQuantite } 
+          : item
+      ));
+
+      // 2. Sauvegarde silencieuse dans Supabase en arrière-plan (Upsert)
+      const { error } = await supabase
+        .from('inventaire_frigo')
+        .upsert({ tag_ingredient: tag, quantite_accumulee: nouvelleQuantite }, { onConflict: 'tag_ingredient' });
+
+      if (error) console.error("🚨 Erreur de sauvegarde frigo :", error.message);
+    };
+
+    // --- AJOUT D'UN NOUVEL INGRÉDIENT AU FRIGO ---
+    const handleAjouterFrigo = async (nouveauTag) => {
+      if (!nouveauTag) return;
+      
+      // Si l'ingrédient est déjà dans la liste, on ne fait rien
+      if (inventaireFrigo.some(item => item.tag_ingredient === nouveauTag)) return;
+
+      const nouvelItem = { tag_ingredient: nouveauTag, quantite_accumulee: 0 };
+      
+      // 1. Ajout visuel
+      setInventaireFrigo(prev => [...prev, nouvelItem]);
+
+      // 2. Ajout dans Supabase
+      const { error } = await supabase.from('inventaire_frigo').insert([nouvelItem]);
+      if (error) console.error("🚨 Erreur d'ajout frigo :", error.message);
+    };
 
   useEffect(() => {
-  async function chargerDonneesFrigo() {
-    try {
-      const { data, error } = await supabase.from('inventaire_frigo').select('*');
-      if (error) throw error;
-      if (data) setInventaireFrigo(data);
-    } catch (err) {
-      console.error("❌ Erreur lors du chargement du frigo :", err.message);
-    }
-  }
-  chargerDonneesFrigo();
-}, []);
+    async function chargerDonnees() {
+      try {
+        // 1. On charge le frigo
+        const { data: frigoData, error: frigoError } = await supabase.from('inventaire_frigo').select('*');
+        if (frigoError) throw frigoError;
+        if (frigoData) setInventaireFrigo(frigoData);
+        
+        // 2. On charge les produits pour extraire la liste des tags possibles
+        const { data: produitsData, error: produitsError } = await supabase.from('produits_magasin').select('tag_ingredient');
+        if (produitsError) throw produitsError;
+        
+        if (produitsData) {
+          // On supprime les doublons pour avoir une liste propre de tags
+            const tagsUniques = [...new Set(produitsData.map(p => p.tag_ingredient))];
+            setTagsDisponibles(tagsUniques.sort());
+          }
+        } catch (err) {
+          console.error("❌ Erreur de chargement :", err.message);
+        }
+      }
+      chargerDonnees();
+    }, []);
 
   return (
     <div className="app-container">
@@ -204,7 +265,9 @@ function App() {
           </div>
           <SectionFrigo 
             inventaireFrigo={inventaireFrigo} 
+            tagsDisponibles={tagsDisponibles}
             onUpdateQuantite={handleUpdateFrigo} 
+            onAjouterItem={handleAjouterFrigo}
           />
           {errorMsg && <p style={{ color: '#ef4444', textAlign: 'center', fontWeight: 'bold' }}>{errorMsg}</p>}
           <button className="btn-action" onClick={handleGenerateMenuClick} disabled={isLoading}>
