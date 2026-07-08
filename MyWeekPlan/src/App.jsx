@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import { generateWeeklyMenu, getAlternativeMeal } from './utils/solver'
 import { generateShoppingList } from './utils/shoppingList'
 import './App.css'
@@ -285,6 +286,7 @@ function App() {
         </div>
       )}
       <Analytics />
+      <SpeedInsights />
     </div>
   )
 }
