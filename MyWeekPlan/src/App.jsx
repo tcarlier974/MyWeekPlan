@@ -24,6 +24,21 @@ const getBackgroundClass = (tag) => {
   return 'bg-default';
 };
 
+// Formate l'affichage (g/kg ou ml/L) selon le tag de l'ingrédient
+const formatQuantity = (tag, quantite) => {
+  const liquides = ['lait', 'creme', 'lait_de_coco', 'huile_olive', 'sauce_teriyaki'];
+  const isLiquid = liquides.includes(tag);
+
+  // Si on a 1000 ou plus, on passe en Kilos ou en Litres pour faire plus propre !
+  if (quantite >= 1000) {
+    const formatted = (quantite / 1000).toString().replace('.', ',');
+    return `${formatted} ${isLiquid ? 'L' : 'kg'}`;
+  }
+  
+  // Sinon on reste en grammes ou millilitres
+  return `${quantite} ${isLiquid ? 'ml' : 'g'}`;
+};
+
 function App() {
   const [currentStep, setCurrentStep] = useState(1)
   
@@ -211,8 +226,8 @@ function App() {
                         {/* Le texte */}
                         <div className="item-details">
                           <div className="item-name">{item.nom}</div>
-                          {/* Affichage propre en grammes */}
-                          <div className="item-qty">{item.quantite} g</div>
+                          {/* Affichage intelligent (g/kg ou ml/L) */}
+                          <div className="item-qty">{formatQuantity(item.tag, item.quantite)}</div>
                         </div>
                         
                         {/* La case à cocher ronde */}

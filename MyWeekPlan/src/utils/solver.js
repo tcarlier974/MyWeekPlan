@@ -2,37 +2,29 @@ import { supabase } from '../supabase'
 
 // --- LE MOTEUR D'OPTIMISATION ---
 // Cette fonction cherche le paquet le moins cher pour couvrir un besoin en grammes
+// ÉTAPE 2 : Version corrigée pour le modèle au kilo (Règle de trois)
 export function getBestProduct(tag, besoinTotalGrammes, produitsDb) {
-  const produitsDispos = produitsDb
-    .filter(p => p.tag_ingredient === tag)
-    .sort((a, b) => b.poids_grammes - a.poids_grammes);
+  // On cherche le produit au kilo/litre correspondant à cet ingrédient
+  const produitKilo = produitsDb.find(p => p.tag_ingredient === tag);
   
-  if (produitsDispos.length === 0) return { cout: 0, produitTrouve: false };
-
-  let resteABesoin = besoinTotalGrammes;
-  let coutTotal = 0;
-  let detailsAchat = [];
-
-  produitsDispos.forEach(p => {
-    if (resteABesoin <= 0) return;
-    const poids = p.poids_grammes;
-    const nbPaquets = Math.floor(resteABesoin / poids);
-
-    if (nbPaquets > 0) {
-      coutTotal += nbPaquets * p.prix;
-      resteABesoin -= (nbPaquets * poids);
-      // ON AJOUTE L'URL DU PRODUIT ICI
-      detailsAchat.push({ id: p.url_produit, nom: p.nom_produit, quantite: nbPaquets });
-    }
-  });
-
-  if (resteABesoin > 0) {
-    const plusPetitPaquet = produitsDispos[produitsDispos.length - 1];
-    coutTotal += plusPetitPaquet.prix;
-    detailsAchat.push({ id: plusPetitPaquet.url_produit, nom: plusPetitPaquet.nom_produit, quantite: 1 });
+  if (!produitKilo) {
+    return { cout: 0, produitTrouve: false, details: [] };
   }
 
-  return { cout: coutTotal, produitTrouve: true, details: detailsAchat };
+  // Règle de trois pure : (grammes demandés / poids de référence) * prix au kilo
+  const poidsReference = produitKilo.poids_grammes || 1000; 
+  const coutCalcule = (besoinTotalGrammes / poidsReference) * produitKilo.prix;
+
+  return { 
+    // On garde une grande précision décimale pour l'addition globale
+    cout: Number(coutCalcule.toFixed(4)), 
+    produitTrouve: true, 
+    details: [{ 
+      id: produitKilo.url_produit, 
+      nom: produitKilo.nom_produit, 
+      quantite: besoinTotalGrammes 
+    }] 
+  };
 }
 
 export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions = 1) {
@@ -40,42 +32,53 @@ export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions 
     const { data: recettesDb, error: errRecettes } = await supabase.from('recettes').select('*')
     const { data: produitsDb, error: errProduits } = await supabase.from('produits_magasin').select('*')
 
-    if (errRecettes || errProduits) throw new Error("Erreur base de données")
-    if (!recettesDb || recettesDb.length === 0) throw new Error("Aucune recette.")
+    if (errRecettes || errProduits) throw new Error("Erreur de connexion à la base de données")
+    if (!recettesDb || recettesDb.length === 0) throw new Error("Aucune recette disponible.")
 
-    // On calcule le prix de chaque recette dynamiquement
+    // 1. On pré-calcule le coût exact au centime près de chaque recette isolée
     const recettesAvecPrix = recettesDb.map(recette => {
       let prixTotalRecette = 0
       
       if (recette.ingredients && Array.isArray(recette.ingredients)) {
         recette.ingredients.forEach(ingredient => {
-           // On calcule le besoin total en grammes (ex: 125g * 4 personnes = 500g)
            const besoinTotal = (ingredient.besoin_grammes || 0) * portions
-           // On demande à l'optimiseur combien ça va nous coûter
            const achat = getBestProduct(ingredient.tag, besoinTotal, produitsDb)
            prixTotalRecette += achat.cout
         })
       }
-      return { ...recette, prixCalcule: prixTotalRecette }
+      return { ...recette, prixCalcule: Number(prixTotalRecette.toFixed(2)) }
     })
 
     let meilleurMenu = []
-    let prixMeilleurMenu = 0
+    let prixMeilleurMenu = Infinity
     
-    for (let i = 0; i < 100; i++) {
+    // 2. On augmente à 1000 tentatives pour laisser à l'algorithme le temps de chercher
+    const TENTATIVES_MAX = 1000;
+    
+    for (let i = 0; i < TENTATIVES_MAX; i++) {
+        // Mélange aléatoire
         const recettesMelangees = [...recettesAvecPrix].sort(() => 0.5 - Math.random())
         const menuTest = recettesMelangees.slice(0, mealsCount)
+        
+        // Somme des coûts de la combinaison
         const coutTest = menuTest.reduce((somme, repas) => somme + repas.prixCalcule, 0)
         
+        // VICTOIRE IMMÉDIATE : Si la combinaison respecte le budget, on s'arrête et on la renvoie !
         if (coutTest <= targetBudget) {
-            return { menu: menuTest, coutTotal: coutTest, succes: true }
+            return { menu: menuTest, coutTotal: Number(coutTest.toFixed(2)), succes: true }
         }
-        if (meilleurMenu.length === 0 || coutTest < prixMeilleurMenu) {
+        
+        // PLAN B : On garde précieusement la combinaison la moins chère trouvée au cas où aucune ne passe
+        if (coutTest < prixMeilleurMenu) {
             meilleurMenu = menuTest
             prixMeilleurMenu = coutTest
         }
     }
-    return { menu: meilleurMenu, coutTotal: prixMeilleurMenu, succes: false }
+    
+    // Si on arrive ici, c'est que le budget demandé était mathématiquement trop bas.
+    // On renvoie quand même le menu le plus proche du budget possible.
+    return { menu: meilleurMenu, coutTotal: Number(prixMeilleurMenu.toFixed(2)), succes: false }
+    
   } catch (error) {
     return { menu: [], coutTotal: 0, succes: false, erreur: error.message }
   }

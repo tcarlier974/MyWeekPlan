@@ -25,3 +25,6 @@ dist-ssr
 importProduits.js
 importRecettes.js
 updateInstructions.js
+catalogue_geant.pdf
+prix_magasins.csv
+prix_moyens_extraits.json
