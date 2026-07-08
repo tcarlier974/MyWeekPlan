@@ -42,7 +42,17 @@ const formatQuantity = (tag, quantite) => {
 };
 
 const SectionFrigo = ({ inventaireFrigo, onUpdateQuantite }) => {
-  if (!inventaireFrigo || inventaireFrigo.length === 0) return null; // Sécurité si le frigo est vide
+  // Si le frigo n'a pas encore chargé ses données depuis Supabase
+  if (!inventaireFrigo || inventaireFrigo.length === 0) {
+    return (
+      <div className="frigo-container" style={{ marginTop: '32px', background: '#F9FAFB', padding: '20px', borderRadius: '16px', textAlign: 'center' }}>
+        <h3 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>🥶 Dans mon frigo</h3>
+        <p style={{ color: '#6B7280', fontSize: '0.85rem' }}>
+          Aucun ingrédient trouvé. Ajoute des lignes dans ta table Supabase `inventaire_frigo` pour les voir ici !
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="frigo-container" style={{ marginTop: '32px', background: '#F9FAFB', padding: '20px', borderRadius: '16px' }}>
@@ -146,6 +156,19 @@ function App() {
   const toggleCheck = (itemId) => {
     setCheckedItems(prev => ({ ...prev, [itemId]: !prev[itemId] }))
   }
+
+  useEffect(() => {
+  async function chargerDonneesFrigo() {
+    try {
+      const { data, error } = await supabase.from('inventaire_frigo').select('*');
+      if (error) throw error;
+      if (data) setInventaireFrigo(data);
+    } catch (err) {
+      console.error("❌ Erreur lors du chargement du frigo :", err.message);
+    }
+  }
+  chargerDonneesFrigo();
+}, []);
 
   return (
     <div className="app-container">
