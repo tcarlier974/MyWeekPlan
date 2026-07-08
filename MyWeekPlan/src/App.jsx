@@ -41,6 +41,38 @@ const formatQuantity = (tag, quantite) => {
   return `${quantite} ${isLiquid ? 'ml' : 'g'}`;
 };
 
+const SectionFrigo = ({ inventaireFrigo, onUpdateQuantite }) => {
+  if (!inventaireFrigo || inventaireFrigo.length === 0) return null; // Sécurité si le frigo est vide
+
+  return (
+    <div className="frigo-container" style={{ marginTop: '32px', background: '#F9FAFB', padding: '20px', borderRadius: '16px' }}>
+      <h3 style={{ fontSize: '1.1rem', marginBottom: '16px' }}>🥶 Dans mon frigo (Éviter le gaspillage)</h3>
+      <p style={{ color: '#6B7280', fontSize: '0.85rem', marginBottom: '16px' }}>
+        Renseigne ce que tu as déjà chez toi. L'algorithme déduira ces quantités de ton budget !
+      </p>
+      
+      <div style={{ display: 'grid', gap: '12px' }}>
+        {inventaireFrigo.map(item => (
+          <div key={item.id || item.tag_ingredient} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'white', padding: '12px 16px', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+            <span style={{ fontWeight: '600', textTransform: 'capitalize' }}>
+              {item.tag_ingredient.replace(/_/g, ' ')}
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input 
+                type="number" 
+                value={item.quantite_accumulee} 
+                onChange={(e) => onUpdateQuantite(item.tag_ingredient, Number(e.target.value))}
+                style={{ width: '80px', padding: '6px', border: '1px solid #E5E7EB', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}
+              />
+              <span style={{ color: '#9CA3AF', fontSize: '0.9rem' }}>g / ml</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 function App() {
   const [currentStep, setCurrentStep] = useState(1)
   
@@ -48,7 +80,15 @@ function App() {
   const [mealsCount, setMealsCount] = useState(7)
   // NOUVEAU : On définit 2 portions par défaut
   const [portions, setPortions] = useState(2) 
-  
+  const [budget, setBudget] = useState(50);
+  const [inventaireFrigo, setInventaireFrigo] = useState([]);
+  const handleUpdateFrigo = (tag, nouvelleQuantite) => {
+    setInventaireFrigo(prev => prev.map(item => 
+      item.tag_ingredient === tag 
+        ? { ...item, quantite_accumulee: nouvelleQuantite } 
+        : item
+    ));
+  };
   const [menu, setMenu] = useState([])
   const [totalCost, setTotalCost] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
@@ -140,7 +180,10 @@ function App() {
               </div>
             </div>
           </div>
-          
+          <SectionFrigo 
+            inventaireFrigo={inventaireFrigo} 
+            onUpdateQuantite={handleUpdateFrigo} 
+          />
           {errorMsg && <p style={{ color: '#ef4444', textAlign: 'center', fontWeight: 'bold' }}>{errorMsg}</p>}
           <button className="btn-action" onClick={handleGenerateMenuClick} disabled={isLoading}>
             {isLoading ? 'Calcul en cours...' : 'Générer mon menu'}
