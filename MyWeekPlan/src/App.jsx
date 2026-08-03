@@ -3,6 +3,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { generateWeeklyMenu, getAlternativeMeal } from './utils/solver'
 import { generateShoppingList } from './utils/shoppingList'
+import { supabase } from './supabase'
 import './App.css'
 
 // Attribue un émoji selon le tag
@@ -115,6 +116,7 @@ function App() {
   // NOUVEAU : On définit 2 portions par défaut
   const [portions, setPortions] = useState(2) 
   const [inventaireFrigo, setInventaireFrigo] = useState([]);
+  const [tagsDisponibles, setTagsDisponibles] = useState([])
   const [menu, setMenu] = useState([])
   const [totalCost, setTotalCost] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
@@ -182,6 +184,11 @@ function App() {
           : item
       ));
 
+      if (!supabase) {
+        setErrorMsg("La configuration Supabase est manquante, les changements du frigo ne peuvent pas être sauvegardés.")
+        return
+      }
+
       // 2. Sauvegarde silencieuse dans Supabase en arrière-plan (Upsert)
       const { error } = await supabase
         .from('inventaire_frigo')
@@ -202,6 +209,11 @@ function App() {
       // 1. Ajout visuel
       setInventaireFrigo(prev => [...prev, nouvelItem]);
 
+      if (!supabase) {
+        setErrorMsg("La configuration Supabase est manquante, le frigo reste en mode local.")
+        return
+      }
+
       // 2. Ajout dans Supabase
       const { error } = await supabase.from('inventaire_frigo').insert([nouvelItem]);
       if (error) console.error("🚨 Erreur d'ajout frigo :", error.message);
@@ -209,6 +221,11 @@ function App() {
 
   useEffect(() => {
     async function chargerDonnees() {
+      if (!supabase) {
+        setErrorMsg("Supabase n'est pas configuré. Ajoute VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY pour charger le frigo.")
+        return
+      }
+
       try {
         // 1. On charge le frigo
         const { data: frigoData, error: frigoError } = await supabase.from('inventaire_frigo').select('*');
