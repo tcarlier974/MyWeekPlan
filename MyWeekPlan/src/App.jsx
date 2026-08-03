@@ -159,7 +159,6 @@ function App() {
   const handleRerollMeal = async (index) => {
     setRerollingIndex(index) 
     
-    // On passe la variable portions
     const resultat = await getAlternativeMeal(menu, index, budget, portions)
     
     if (resultat.succes) {
