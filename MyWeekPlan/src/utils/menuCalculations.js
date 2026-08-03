@@ -70,32 +70,67 @@ export function selectAffordableMenu(recipes, budget, mealsCount, portions, prod
     return planningFailure('Il n’y a pas assez de recettes disponibles.')
   }
 
-  const candidates = combinations(recipes, mealsCount)
-  let bestMatch = null
+  const beamWidth = 20
+  let frontier = [{
+    menu: [],
+    usedIds: new Set(),
+    priced: { totalCost: 0, meals: [], missingTags: [] },
+    score: 0,
+  }]
   let sawMissingProduct = false
 
-  for (const candidate of candidates) {
-    const priced = priceMenu(candidate, portions, products || [], inventory || [])
-    if (priced.missingTags.length > 0) {
-      sawMissingProduct = true
-      continue
+  for (let step = 0; step < mealsCount; step += 1) {
+    const nextFrontier = []
+
+    for (const state of frontier) {
+      for (const recipe of recipes) {
+        if (state.usedIds.has(recipe.id)) continue
+
+        const candidateMenu = [...state.menu, recipe]
+        const priced = priceMenu(candidateMenu, portions, products || [], inventory || [])
+
+        if (priced.missingTags.length > 0) {
+          sawMissingProduct = true
+          continue
+        }
+
+        if (priced.totalCost > budget) continue
+
+        nextFrontier.push({
+          menu: priced.meals,
+          usedIds: new Set([...state.usedIds, recipe.id]),
+          priced,
+          score: countPurchasedTags(candidateMenu, portions, inventory || []),
+        })
+      }
     }
 
-    if (priced.totalCost > budget) continue
-
-    const score = countPurchasedTags(candidate, portions, inventory || [])
-    if (!bestMatch || score < bestMatch.score || (
-      score === bestMatch.score && priced.totalCost < bestMatch.totalCost
-    )) {
-      bestMatch = { ...priced, score }
+    if (nextFrontier.length === 0) {
+      return planningFailure(
+        sawMissingProduct
+          ? 'Le catalogue ne contient pas tous les produits nécessaires.'
+          : 'Aucun menu ne respecte ce budget.',
+      )
     }
+
+    nextFrontier.sort((left, right) => {
+      if (left.score !== right.score) return left.score - right.score
+      if (left.priced.totalCost !== right.priced.totalCost) {
+        return left.priced.totalCost - right.priced.totalCost
+      }
+      return left.menu.length - right.menu.length
+    })
+
+    frontier = nextFrontier.slice(0, beamWidth)
   }
+
+  const bestMatch = frontier[0]
 
   if (bestMatch) {
     return {
       success: true,
-      menu: bestMatch.meals,
-      totalCost: bestMatch.totalCost,
+      menu: bestMatch.menu,
+      totalCost: bestMatch.priced.totalCost,
       error: null,
     }
   }
@@ -109,17 +144,6 @@ export function selectAffordableMenu(recipes, budget, mealsCount, portions, prod
 
 function planningFailure(error) {
   return { success: false, menu: [], totalCost: 0, error }
-}
-
-function* combinations(items, count, start = 0, selected = []) {
-  if (selected.length === count) {
-    yield selected
-    return
-  }
-
-  for (let index = start; index <= items.length - (count - selected.length); index += 1) {
-    yield* combinations(items, count, index + 1, [...selected, items[index]])
-  }
 }
 
 function countPurchasedTags(menu, portions, inventory) {

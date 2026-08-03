@@ -104,3 +104,22 @@ test('rejects invalid planning inputs and impossible menus', () => {
     false,
   )
 })
+
+test('selects a menu without enumerating every combination', () => {
+  const recipes = Array.from({ length: 25 }, (_, index) => ({
+    id: index + 1,
+    ingredients: [{ tag: 'riz', besoin_grammes: 100 }],
+  }))
+
+  const result = selectAffordableMenu(
+    recipes,
+    10,
+    7,
+    1,
+    [{ tag_ingredient: 'riz', poids_grammes: 1000, prix: 2 }],
+    [],
+  )
+
+  assert.equal(result.success, true)
+  assert.equal(result.menu.length, 7)
+})
