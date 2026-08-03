@@ -130,17 +130,30 @@ function App() {
     setIsLoading(true)
     setErrorMsg('')
     
-    // On passe la variable portions au solveur
-    const resultat = await generateWeeklyMenu(budget, mealsCount, portions)
-    
-    if (resultat.erreur) {
-      setErrorMsg(resultat.erreur)
-    } else {
-      setMenu(resultat.menu)
-      setTotalCost(resultat.coutTotal)
+    try {
+      // On passe la variable portions au solveur
+      const resultat = await generateWeeklyMenu(budget, mealsCount, portions)
+      const success = resultat?.success ?? resultat?.succes ?? false
+      const errorMessage = resultat?.error ?? resultat?.erreur ?? null
+
+      if (!success) {
+        setMenu([])
+        setTotalCost(0)
+        setErrorMsg(errorMessage || 'Impossible de générer un menu valide.')
+        return
+      }
+
+      setMenu(Array.isArray(resultat.menu) ? resultat.menu : [])
+      setTotalCost(Number.isFinite(resultat.totalCost) ? resultat.totalCost : (resultat.coutTotal || 0))
       setCurrentStep(2)
+    } catch (error) {
+      console.error('Erreur lors de la génération du menu :', error)
+      setMenu([])
+      setTotalCost(0)
+      setErrorMsg('Une erreur inattendue est survenue pendant la génération du menu.')
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
   
   const handleRerollMeal = async (index) => {
