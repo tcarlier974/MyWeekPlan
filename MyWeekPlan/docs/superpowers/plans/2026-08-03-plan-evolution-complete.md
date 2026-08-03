@@ -61,22 +61,22 @@ Faire évoluer MyWeekPlan d’un planificateur de menus fonctionnel vers une vra
 - [x] Ajouter un hero panel plus fort.
 - [x] Ajouter un step tracker visible.
 - [x] Ajouter des métriques rapides pour budget, repas, portions et frigo.
-- [ ] Définir une palette de composants stable dans `App.css`.
-- [ ] Donner un thème plus marqué à l’application: saisonnier, cuisine maison, marché ou bistro.
-- [ ] Introduire une variante visuelle par état: normal, vide, erreur, succès.
+- [x] Définir une palette de composants stable dans `App.css`.
+- [x] Donner un thème plus marqué à l’application: saisonnier, cuisine maison, marché ou bistro.
+- [x] Introduire une variante visuelle par état: normal, vide, erreur, succès.
 
 ### 2.2 Améliorer la densité d’information
 
 - [x] Ajouter un résumé compact du menu généré.
-- [ ] Ajouter une zone “résumé de la semaine” plus complète avec coût/jour et coût/portion.
-- [ ] Afficher les économies générées par le frigo.
-- [ ] Afficher la part de stock déjà couverte avant achat.
+- [x] Ajouter une zone “résumé de la semaine” plus complète avec coût/jour et coût/portion.
+- [x] Afficher les économies générées par le frigo.
+- [x] Afficher la part de stock déjà couverte avant achat.
 
 ### 2.3 Polir l’interaction
 
-- [ ] Ajouter des transitions entre les étapes plus douces.
-- [ ] Ajouter des micro-interactions sur les boutons et cartes.
-- [ ] Ajouter un feedback plus visible au clic sur verrouillage, reroll et validation.
+- [x] Ajouter des transitions entre les étapes plus douces.
+- [x] Ajouter des micro-interactions sur les boutons et cartes.
+- [x] Ajouter un feedback plus visible au clic sur verrouillage, reroll et validation.
 - [ ] Prévoir des skeletons pendant le chargement des données.
 
 ## Phase 3: Menu Engine and Anti-Gaspi

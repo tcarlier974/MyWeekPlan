@@ -4,6 +4,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react'
 import { generateWeeklyMenu, getAlternativeMeal } from './utils/solver'
 import { generateShoppingList } from './utils/shoppingList'
 import { supabase } from './supabase'
+import { getRequiredQuantities, subtractInventory } from './utils/menuCalculations'
 import './App.css'
 
 // Attribue un émoji selon le tag
@@ -139,6 +140,15 @@ function App() {
     if (!Number.isFinite(value)) return 0
     return Math.max(0, Math.min(50000, value))
   }
+
+  const requiredQuantities = getRequiredQuantities(menu, portions)
+  const remainingQuantities = subtractInventory(requiredQuantities, inventaireFrigo)
+  const totalRequiredQuantity = Object.values(requiredQuantities).reduce((sum, quantity) => sum + quantity, 0)
+  const totalRemainingQuantity = Object.values(remainingQuantities).reduce((sum, quantity) => sum + quantity, 0)
+  const totalCoveredQuantity = Math.max(0, totalRequiredQuantity - totalRemainingQuantity)
+  const coveragePercent = totalRequiredQuantity > 0 ? (totalCoveredQuantity / totalRequiredQuantity) * 100 : 0
+  const costPerDay = menu.length > 0 ? totalCost / menu.length : 0
+  const costPerPortion = menu.length > 0 && portions > 0 ? totalCost / (menu.length * portions) : 0
   
   const handleGenerateMenuClick = async () => {
     setIsLoading(true)
@@ -348,7 +358,7 @@ function App() {
                 <h2>Prépare ton menu</h2>
                 <p>Entre ton budget, le nombre de repas et ce que tu as déjà.</p>
               </div>
-              {errorMsg && <span className="status-pill status-pill-error">Attention</span>}
+              {errorMsg ? <span className="status-pill status-pill-error">Erreur</span> : <span className="status-pill status-pill-success">Prêt</span>}
             </div>
 
             {isLoading && (
@@ -404,7 +414,7 @@ function App() {
             <button className="btn-back" onClick={() => setCurrentStep(1)}>
               Modifier le budget
             </button>
-            <span className="status-pill">Menu généré</span>
+            <span className="status-pill status-pill-success">Menu généré</span>
           </div>
 
           {isGeneratingShoppingList && (
@@ -421,12 +431,12 @@ function App() {
           )}
           
           {/* La couleur change si on dépasse le budget */}
-          <div className="budget-summary" style={{ backgroundColor: totalCost > budget ? '#ef4444' : 'var(--primary)' }}>
+          <div className={`budget-summary ${totalCost > budget ? 'budget-summary-over' : 'budget-summary-ok'}`}>
             Coût total estimé : {totalCost.toFixed(2)} €
           </div>
 
           <div className="menu-summary-panel">
-            <div className="menu-summary-item">
+            <div className="menu-summary-item summary-accent">
               <span>Budget restant</span>
               <strong>{Math.max(0, budget - totalCost).toFixed(2)} €</strong>
             </div>
@@ -434,9 +444,21 @@ function App() {
               <span>Plats verrouillés</span>
               <strong>{Object.values(lockedMeals).filter(Boolean).length}/{menu.length}</strong>
             </div>
+            <div className="menu-summary-item summary-success">
+              <span>Stock couvert</span>
+              <strong>{Math.round(coveragePercent)}%</strong>
+            </div>
             <div className="menu-summary-item">
-              <span>Repas prévus</span>
-              <strong>{menu.length}</strong>
+              <span>Coût par jour</span>
+              <strong>{costPerDay.toFixed(2)} €</strong>
+            </div>
+            <div className="menu-summary-item">
+              <span>Coût par portion</span>
+              <strong>{costPerPortion.toFixed(2)} €</strong>
+            </div>
+            <div className="menu-summary-item summary-neutral">
+              <span>Grammes à acheter</span>
+              <strong>{totalRemainingQuantity.toFixed(0)} g</strong>
             </div>
           </div>
 
@@ -495,7 +517,7 @@ function App() {
         <div className="screen">
           <div className="screen-toolbar">
             <button className="btn-back" onClick={() => setCurrentStep(2)}>Retour au menu</button>
-            <span className="status-pill">Courses prêtes</span>
+            <span className="status-pill status-pill-success">Courses prêtes</span>
           </div>
           
           <div className="shopping-container" style={{ marginTop: '24px' }}>
