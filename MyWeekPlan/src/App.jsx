@@ -120,6 +120,7 @@ function App() {
   const [menu, setMenu] = useState([])
   const [totalCost, setTotalCost] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
+  const [isGeneratingShoppingList, setIsGeneratingShoppingList] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [shoppingList, setShoppingList] = useState(null)
   const [checkedItems, setCheckedItems] = useState({})
@@ -132,10 +133,17 @@ function App() {
     { id: 2, label: 'Menu' },
     { id: 3, label: 'Courses' },
   ]
+
+  const isBusy = isLoading || isGeneratingShoppingList || rerollingIndex !== null
+  const clampQuantity = (value) => {
+    if (!Number.isFinite(value)) return 0
+    return Math.max(0, Math.min(50000, value))
+  }
   
   const handleGenerateMenuClick = async () => {
     setIsLoading(true)
     setErrorMsg('')
+    setShoppingList(null)
     setLockedMeals({})
     
     try {
@@ -196,12 +204,26 @@ function App() {
   }
   
   const handleGenerateListClick = async () => {
-    setIsLoading(true)
-    // On passe la variable portions
-    const list = await generateShoppingList(menu, portions)
-    setShoppingList(list)
-    setCurrentStep(3)
-    setIsLoading(false)
+    if (!menu.length) {
+      setErrorMsg('Génère d’abord un menu avant de créer la liste de courses.')
+      return
+    }
+
+    setIsGeneratingShoppingList(true)
+    setErrorMsg('')
+
+    try {
+      // On passe la variable portions
+      const list = await generateShoppingList(menu, portions)
+      setShoppingList(list || {})
+      setCurrentStep(3)
+    } catch (error) {
+      console.error('Erreur lors de la génération de la liste de courses :', error)
+      setShoppingList({})
+      setErrorMsg('Impossible de générer la liste de courses pour le moment.')
+    } finally {
+      setIsGeneratingShoppingList(false)
+    }
   }
   
   const toggleCheck = (itemId) => {
@@ -212,7 +234,7 @@ function App() {
       // 1. Mise à jour visuelle instantanée pour ne pas bloquer l'utilisateur
       setInventaireFrigo(prev => prev.map(item => 
         item.tag_ingredient === tag 
-          ? { ...item, quantite_accumulee: nouvelleQuantite } 
+          ? { ...item, quantite_accumulee: clampQuantity(nouvelleQuantite) } 
           : item
       ));
 
@@ -224,7 +246,7 @@ function App() {
       // 2. Sauvegarde silencieuse dans Supabase en arrière-plan (Upsert)
       const { error } = await supabase
         .from('inventaire_frigo')
-        .upsert({ tag_ingredient: tag, quantite_accumulee: nouvelleQuantite }, { onConflict: 'tag_ingredient' });
+        .upsert({ tag_ingredient: tag, quantite_accumulee: clampQuantity(nouvelleQuantite) }, { onConflict: 'tag_ingredient' });
 
       if (error) console.error("🚨 Erreur de sauvegarde frigo :", error.message);
     };
@@ -319,7 +341,7 @@ function App() {
       </nav>
       
       {currentStep === 1 && (
-        <div className="screen">
+        <div className="screen" aria-busy={isLoading}>
           <div className="card card-hero">
             <div className="card-header">
               <div>
@@ -329,24 +351,34 @@ function App() {
               {errorMsg && <span className="status-pill status-pill-error">Attention</span>}
             </div>
 
+            {isLoading && (
+              <div className="loading-banner">
+                <span className="loading-dot" />
+                Génération du menu en cours, ne ferme pas la page.
+              </div>
+            )}
+
             {/* Ligne Budget */}
             <div className="input-group">
               <label>Quel est ton budget de la semaine ?</label>
               <div style={{ position: 'relative' }}>
-                <input type="number" value={budget} onChange={(e) => setBudget(Number(e.target.value))} min="1" />
+                <input type="number" value={budget} onChange={(e) => setBudget(Number(e.target.value))} min="1" max="500" step="1" />
                 <span style={{ position: 'absolute', right: '15px', top: '15px', fontWeight: 'bold', color: '#6b7280' }}>€</span>
               </div>
+              <span className="input-help">Budget conseillé: entre 1 € et 500 €.</span>
             </div>
             
             {/* Nouvelle disposition pour Repas et Personnes côte à côte */}
             <div style={{ display: 'flex', gap: '15px' }}>
               <div className="input-group" style={{ flex: 1 }}>
                 <label>Nbr de repas</label>
-                <input type="number" value={mealsCount} onChange={(e) => setMealsCount(Number(e.target.value))} min="1" />
+                <input type="number" value={mealsCount} onChange={(e) => setMealsCount(Number(e.target.value))} min="1" max="14" step="1" />
+                <span className="input-help">Entre 1 et 14 repas pour garder un menu réaliste.</span>
               </div>
               <div className="input-group" style={{ flex: 1 }}>
                 <label>Personnes</label>
-                <input type="number" value={portions} onChange={(e) => setPortions(Number(e.target.value))} min="1" />
+                <input type="number" value={portions} onChange={(e) => setPortions(Number(e.target.value))} min="1" max="12" step="1" />
+                <span className="input-help">Le calcul est optimisé pour 1 à 12 personnes.</span>
               </div>
             </div>
           </div>
@@ -357,7 +389,7 @@ function App() {
             onAjouterItem={handleAjouterFrigo}
           />
           {errorMsg && <p style={{ color: '#ef4444', textAlign: 'center', fontWeight: 'bold' }}>{errorMsg}</p>}
-          <button className="btn-action" onClick={handleGenerateMenuClick} disabled={isLoading}>
+          <button className="btn-action" onClick={handleGenerateMenuClick} disabled={isBusy}>
             {isLoading ? 'Calcul en cours...' : 'Générer mon menu'}
           </button>
         </div>
@@ -367,13 +399,26 @@ function App() {
       {/* ... Copie-colle la suite de ton return () précédent à partir du {currentStep === 2 && ...} ... */}
 
       {currentStep === 2 && (
-        <div className="screen">
+        <div className="screen" aria-busy={isGeneratingShoppingList || rerollingIndex !== null}>
           <div className="screen-toolbar">
             <button className="btn-back" onClick={() => setCurrentStep(1)}>
               Modifier le budget
             </button>
             <span className="status-pill">Menu généré</span>
           </div>
+
+          {isGeneratingShoppingList && (
+            <div className="loading-banner">
+              <span className="loading-dot" />
+              Création de la liste de courses en cours.
+            </div>
+          )}
+          {rerollingIndex !== null && (
+            <div className="loading-banner">
+              <span className="loading-dot" />
+              Reroll du plat {rerollingIndex + 1} en cours.
+            </div>
+          )}
           
           {/* La couleur change si on dépasse le budget */}
           <div className="budget-summary" style={{ backgroundColor: totalCost > budget ? '#ef4444' : 'var(--primary)' }}>
@@ -419,6 +464,7 @@ function App() {
                       e.stopPropagation()
                       toggleMealLock(index)
                     }}
+                    disabled={isBusy}
                     aria-pressed={Boolean(lockedMeals[index])}
                     title={lockedMeals[index] ? 'Déverrouiller ce plat' : 'Verrouiller ce plat'}
                   >
@@ -430,7 +476,7 @@ function App() {
                       e.stopPropagation(); // EMPÊCHE D'OUVRIR LA RECETTE QUAND ON CLIQUE SUR REROLL
                       handleRerollMeal(index) 
                     }}
-                    disabled={rerollingIndex !== null}
+                    disabled={isBusy}
                   >
                     🔄
                   </button>
@@ -438,8 +484,8 @@ function App() {
               </div>
             ))}
           </div>
-          <button className="btn-action" onClick={handleGenerateListClick} disabled={isLoading}>
-            {isLoading ? 'Création...' : 'Valider & faire les courses'}
+          <button className="btn-action" onClick={handleGenerateListClick} disabled={isBusy}>
+            {isGeneratingShoppingList ? 'Création...' : 'Valider & faire les courses'}
           </button>
         </div>
       )}

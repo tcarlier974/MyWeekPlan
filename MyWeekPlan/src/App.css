@@ -318,6 +318,14 @@ body {
   box-shadow: 0 0 0 4px rgba(47, 125, 96, 0.12);
 }
 
+.input-help {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.82rem;
+  color: var(--text-light);
+  line-height: 1.45;
+}
+
 /* --- BOUTONS D'ACTION --- */
 .btn-action {
   width: 100%;
@@ -345,6 +353,38 @@ body {
   background: #9ca3af;
   box-shadow: none;
   cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.loading-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(47, 125, 96, 0.08);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.loading-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 0 rgba(47, 125, 96, 0.2);
+  animation: pulseDot 1.4s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% {
+    transform: scale(0.95);
+    opacity: 0.65;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
 }
 
 .screen-toolbar {
@@ -490,6 +530,13 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn-lock:disabled,
+.btn-reroll:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  box-shadow: none;
 }
 
 .btn-lock:hover {
