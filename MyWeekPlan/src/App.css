@@ -368,6 +368,34 @@ body {
   box-shadow: 0 18px 30px rgba(47, 125, 96, 0.2);
 }
 
+.menu-summary-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.menu-summary-item {
+  background: var(--bg-card);
+  border: 1px solid rgba(31, 36, 48, 0.08);
+  border-radius: 18px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-md);
+}
+
+.menu-summary-item span {
+  display: block;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 8px;
+}
+
+.menu-summary-item strong {
+  font-size: 1.2rem;
+  color: var(--text-main);
+}
+
 .meal-list {
   display: flex;
   flex-direction: column;
@@ -447,7 +475,31 @@ body {
 .meal-price-container {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+}
+
+.btn-lock {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(47, 125, 96, 0.08);
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn-lock:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(47, 125, 96, 0.12);
+}
+
+.btn-lock.locked {
+  background: rgba(217, 119, 6, 0.14);
+  color: var(--accent);
 }
 
 .btn-reroll {
@@ -668,6 +720,10 @@ body {
   .screen-toolbar {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .menu-summary-panel {
+    grid-template-columns: 1fr;
   }
 }
 

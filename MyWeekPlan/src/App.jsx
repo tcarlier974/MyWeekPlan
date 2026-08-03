@@ -125,6 +125,7 @@ function App() {
   const [checkedItems, setCheckedItems] = useState({})
   const [rerollingIndex, setRerollingIndex] = useState(null)
   const [selectedRecipe, setSelectedRecipe] = useState(null)
+  const [lockedMeals, setLockedMeals] = useState({})
 
   const stepLabels = [
     { id: 1, label: 'Budget & frigo' },
@@ -135,6 +136,7 @@ function App() {
   const handleGenerateMenuClick = async () => {
     setIsLoading(true)
     setErrorMsg('')
+    setLockedMeals({})
     
     try {
       // On passe la variable portions au solveur
@@ -161,8 +163,20 @@ function App() {
       setIsLoading(false)
     }
   }
+
+  const toggleMealLock = (index) => {
+    setLockedMeals(prev => ({
+      ...prev,
+      [index]: !prev[index],
+    }))
+  }
   
   const handleRerollMeal = async (index) => {
+    if (lockedMeals[index]) {
+      setErrorMsg('Ce plat est verrouillé. Déverrouille-le avant de le reroll.')
+      return
+    }
+
     setRerollingIndex(index) 
     
     const resultat = await getAlternativeMeal(menu, index, budget, portions)
@@ -175,7 +189,7 @@ function App() {
       const nouveauPrix = nouveauMenu.reduce((sum, repas) => sum + repas.prixCalcule, 0)
       setTotalCost(nouveauPrix)
     } else {
-      alert("Impossible de changer ce plat (As-tu assez de recettes dans ta base ?)")
+      setErrorMsg("Impossible de changer ce plat (As-tu assez de recettes dans ta base ?)")
     }
     
     setRerollingIndex(null)
@@ -366,6 +380,21 @@ function App() {
             Coût total estimé : {totalCost.toFixed(2)} €
           </div>
 
+          <div className="menu-summary-panel">
+            <div className="menu-summary-item">
+              <span>Budget restant</span>
+              <strong>{Math.max(0, budget - totalCost).toFixed(2)} €</strong>
+            </div>
+            <div className="menu-summary-item">
+              <span>Plats verrouillés</span>
+              <strong>{Object.values(lockedMeals).filter(Boolean).length}/{menu.length}</strong>
+            </div>
+            <div className="menu-summary-item">
+              <span>Repas prévus</span>
+              <strong>{menu.length}</strong>
+            </div>
+          </div>
+
           <div className="meal-list">
             {menu.map((repas, index) => (
               <div key={index} 
@@ -383,6 +412,18 @@ function App() {
 
                 <div className="meal-price-container">
                   <span className="meal-price">{repas.prixCalcule.toFixed(2)} €</span>
+                  <button
+                    type="button"
+                    className={`btn-lock ${lockedMeals[index] ? 'locked' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleMealLock(index)
+                    }}
+                    aria-pressed={Boolean(lockedMeals[index])}
+                    title={lockedMeals[index] ? 'Déverrouiller ce plat' : 'Verrouiller ce plat'}
+                  >
+                    {lockedMeals[index] ? '🔒' : '🔓'}
+                  </button>
                   <button 
                     className={`btn-reroll ${rerollingIndex === index ? 'spinning' : ''}`}
                     onClick={(e) => { 
