@@ -1,6 +1,10 @@
 import { supabase } from '../supabase'
 
 export async function generateShoppingList(menu, portions = 1) {
+  if (!supabase) {
+    return null
+  }
+
   try {
     const { data: produitsDb, error } = await supabase.from('produits_magasin').select('*')
     if (error) throw new Error("Erreur produits.")

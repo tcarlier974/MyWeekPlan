@@ -23,6 +23,10 @@ export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions 
     return planningFailure('Le budget, le nombre de repas et les portions doivent être positifs.')
   }
 
+  if (!supabase) {
+    return planningFailure('Supabase n’est pas configuré. La génération du menu est indisponible.')
+  }
+
   try {
     const [recipesResult, productsResult, inventoryResult] = await Promise.all([
       supabase.from('recettes').select('*'),
@@ -49,6 +53,10 @@ export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions 
 }
 
 export async function getAlternativeMeal(currentMenu, indexToReplace, targetBudget, portions = 1) {
+  if (!supabase) {
+    return { succes: false, erreur: 'Supabase n’est pas configuré.' }
+  }
+
   try {
     const { data: recettesDb } = await supabase.from('recettes').select('*')
     const { data: produitsDb } = await supabase.from('produits_magasin').select('*')
