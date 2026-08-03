@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
   getRequiredQuantities,
   priceMenu,
+  selectAffordableMenu,
   subtractInventory,
   validatePlanningInput,
 } from './menuCalculations.js'
@@ -69,4 +70,37 @@ test('prices a menu after fridge deduction and reports missing products', () => 
   assert.equal(result.totalCost, 1)
   assert.equal(result.meals[0].prixCalcule, 1)
   assert.deepEqual(result.missingTags, [])
+})
+
+test('selects only a complete menu that fits the target budget', () => {
+  const result = selectAffordableMenu(
+    [
+      { id: 1, ingredients: [{ tag: 'riz', besoin_grammes: 500 }] },
+      { id: 2, ingredients: [{ tag: 'riz', besoin_grammes: 500 }] },
+      { id: 3, ingredients: [{ tag: 'riz', besoin_grammes: 2000 }] },
+    ],
+    2,
+    2,
+    1,
+    [{ tag_ingredient: 'riz', poids_grammes: 1000, prix: 2 }],
+    [],
+  )
+
+  assert.equal(result.success, true)
+  assert.equal(result.menu.length, 2)
+  assert.equal(result.totalCost, 2)
+  assert.ok(result.menu.every(recipe => Number.isFinite(recipe.prixCalcule)))
+})
+
+test('rejects invalid planning inputs and impossible menus', () => {
+  const recipes = [{ id: 1, ingredients: [{ tag: 'riz', besoin_grammes: 500 }] }]
+  const products = [{ tag_ingredient: 'riz', poids_grammes: 1000, prix: 2 }]
+
+  assert.equal(selectAffordableMenu(recipes, 0, 1, 1, products, []).success, false)
+  assert.equal(selectAffordableMenu(recipes, 10, 2, 1, products, []).success, false)
+  assert.equal(selectAffordableMenu(recipes, 0.5, 1, 1, products, []).success, false)
+  assert.equal(
+    selectAffordableMenu([{ id: 1, ingredients: [{ tag: 'inconnu', besoin_grammes: 500 }] }], 10, 1, 1, products, []).success,
+    false,
+  )
 })

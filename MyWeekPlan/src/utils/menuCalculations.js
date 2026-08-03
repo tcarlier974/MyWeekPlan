@@ -60,3 +60,68 @@ export function priceMenu(menu, portions, products, inventory) {
 
   return { totalCost, meals, missingTags }
 }
+
+export function selectAffordableMenu(recipes, budget, mealsCount, portions, products, inventory) {
+  if (!validatePlanningInput(budget, mealsCount, portions)) {
+    return planningFailure('Le budget, le nombre de repas et les portions doivent être positifs.')
+  }
+
+  if (!Array.isArray(recipes) || recipes.length < mealsCount) {
+    return planningFailure('Il n’y a pas assez de recettes disponibles.')
+  }
+
+  const candidates = combinations(recipes, mealsCount)
+  let bestMatch = null
+  let sawMissingProduct = false
+
+  for (const candidate of candidates) {
+    const priced = priceMenu(candidate, portions, products || [], inventory || [])
+    if (priced.missingTags.length > 0) {
+      sawMissingProduct = true
+      continue
+    }
+
+    if (priced.totalCost > budget) continue
+
+    const score = countPurchasedTags(candidate, portions, inventory || [])
+    if (!bestMatch || score < bestMatch.score || (
+      score === bestMatch.score && priced.totalCost < bestMatch.totalCost
+    )) {
+      bestMatch = { ...priced, score }
+    }
+  }
+
+  if (bestMatch) {
+    return {
+      success: true,
+      menu: bestMatch.meals,
+      totalCost: bestMatch.totalCost,
+      error: null,
+    }
+  }
+
+  return planningFailure(
+    sawMissingProduct
+      ? 'Le catalogue ne contient pas tous les produits nécessaires.'
+      : 'Aucun menu ne respecte ce budget.',
+  )
+}
+
+function planningFailure(error) {
+  return { success: false, menu: [], totalCost: 0, error }
+}
+
+function* combinations(items, count, start = 0, selected = []) {
+  if (selected.length === count) {
+    yield selected
+    return
+  }
+
+  for (let index = start; index <= items.length - (count - selected.length); index += 1) {
+    yield* combinations(items, count, index + 1, [...selected, items[index]])
+  }
+}
+
+function countPurchasedTags(menu, portions, inventory) {
+  return Object.keys(subtractInventory(getRequiredQuantities(menu, portions), inventory)).length
+}
