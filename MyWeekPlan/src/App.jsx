@@ -125,6 +125,12 @@ function App() {
   const [checkedItems, setCheckedItems] = useState({})
   const [rerollingIndex, setRerollingIndex] = useState(null)
   const [selectedRecipe, setSelectedRecipe] = useState(null)
+
+  const stepLabels = [
+    { id: 1, label: 'Budget & frigo' },
+    { id: 2, label: 'Menu' },
+    { id: 3, label: 'Courses' },
+  ]
   
   const handleGenerateMenuClick = async () => {
     setIsLoading(true)
@@ -262,15 +268,53 @@ function App() {
 
   return (
     <div className="app-container">
+      <header className="hero-panel">
+        <div className="hero-copy">
+          <span className="hero-eyebrow">Planificateur hebdo</span>
+          <h1>MyWeekPlan</h1>
+          <p>Un menu plus malin, moins cher, et branché sur ton frigo.</p>
+        </div>
+
+        <div className="hero-metrics" aria-label="Résumé rapide">
+          <div className="metric-card">
+            <span>Budget</span>
+            <strong>{budget} €</strong>
+          </div>
+          <div className="metric-card">
+            <span>Repas</span>
+            <strong>{mealsCount}</strong>
+          </div>
+          <div className="metric-card">
+            <span>Portions</span>
+            <strong>{portions}</strong>
+          </div>
+          <div className="metric-card metric-card-accent">
+            <span>Frigo</span>
+            <strong>{inventaireFrigo.length}</strong>
+          </div>
+        </div>
+      </header>
+
+      <nav className="step-tracker" aria-label="Progression du parcours">
+        {stepLabels.map(step => (
+          <div key={step.id} className={`step-pill ${currentStep === step.id ? 'active' : ''} ${currentStep > step.id ? 'done' : ''}`}>
+            <span className="step-pill-index">{step.id}</span>
+            <span>{step.label}</span>
+          </div>
+        ))}
+      </nav>
       
       {currentStep === 1 && (
         <div className="screen">
-          <div className="header">
-            <h1>MyWeekPlan</h1>
-            <p>Ton budget, tes repas.</p>
-          </div>
-          
-          <div className="card">
+          <div className="card card-hero">
+            <div className="card-header">
+              <div>
+                <h2>Prépare ton menu</h2>
+                <p>Entre ton budget, le nombre de repas et ce que tu as déjà.</p>
+              </div>
+              {errorMsg && <span className="status-pill status-pill-error">Attention</span>}
+            </div>
+
             {/* Ligne Budget */}
             <div className="input-group">
               <label>Quel est ton budget de la semaine ?</label>
@@ -310,9 +354,12 @@ function App() {
 
       {currentStep === 2 && (
         <div className="screen">
-          <button className="btn-back" onClick={() => setCurrentStep(1)}>
-            Modifier le budget
-          </button>
+          <div className="screen-toolbar">
+            <button className="btn-back" onClick={() => setCurrentStep(1)}>
+              Modifier le budget
+            </button>
+            <span className="status-pill">Menu généré</span>
+          </div>
           
           {/* La couleur change si on dépasse le budget */}
           <div className="budget-summary" style={{ backgroundColor: totalCost > budget ? '#ef4444' : 'var(--primary)' }}>
@@ -359,7 +406,10 @@ function App() {
       {/* --- ÉTAPE 3 : LISTE DE COURSES --- */}
       {currentStep === 3 && shoppingList && (
         <div className="screen">
-          <button className="btn-back" onClick={() => setCurrentStep(2)}>Retour au menu</button>
+          <div className="screen-toolbar">
+            <button className="btn-back" onClick={() => setCurrentStep(2)}>Retour au menu</button>
+            <span className="status-pill">Courses prêtes</span>
+          </div>
           
           <div className="shopping-container" style={{ marginTop: '24px' }}>
             {Object.entries(shoppingList).map(([rayon, items]) => (
