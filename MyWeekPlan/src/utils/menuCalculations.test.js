@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
   getRequiredQuantities,
   priceMenu,
+  normalizePlanningMode,
   selectAffordableMenu,
   subtractInventory,
   validatePlanningInput,
@@ -122,4 +123,69 @@ test('selects a menu without enumerating every combination', () => {
 
   assert.equal(result.success, true)
   assert.equal(result.menu.length, 7)
+})
+
+test('normalizes unknown planning modes to balanced', () => {
+  assert.equal(normalizePlanningMode('random'), 'balanced')
+  assert.equal(normalizePlanningMode('quick'), 'quick')
+})
+
+test('economic mode prefers the cheaper menu', () => {
+  const recipes = [
+    { id: 1, temps_prep: 30, ingredients: [{ tag: 'riz', besoin_grammes: 200 }] },
+    { id: 2, temps_prep: 5, ingredients: [{ tag: 'riz', besoin_grammes: 1000 }] },
+  ]
+
+  const result = selectAffordableMenu(
+    recipes,
+    5,
+    1,
+    1,
+    [{ tag_ingredient: 'riz', poids_grammes: 1000, prix: 1 }],
+    [],
+    { mode: 'economic' },
+  )
+
+  assert.equal(result.success, true)
+  assert.equal(result.menu[0].id, 1)
+})
+
+test('quick mode prefers the fastest menu', () => {
+  const recipes = [
+    { id: 1, temps_prep: 30, ingredients: [{ tag: 'riz', besoin_grammes: 200 }] },
+    { id: 2, temps_prep: 5, ingredients: [{ tag: 'riz', besoin_grammes: 1000 }] },
+  ]
+
+  const result = selectAffordableMenu(
+    recipes,
+    5,
+    1,
+    1,
+    [{ tag_ingredient: 'riz', poids_grammes: 1000, prix: 1 }],
+    [],
+    { mode: 'quick' },
+  )
+
+  assert.equal(result.success, true)
+  assert.equal(result.menu[0].id, 2)
+})
+
+test('anti-gaspi mode favors the menu that best covers fridge stock', () => {
+  const recipes = [
+    { id: 1, temps_prep: 30, ingredients: [{ tag: 'riz', besoin_grammes: 200 }] },
+    { id: 2, temps_prep: 5, ingredients: [{ tag: 'riz', besoin_grammes: 1000 }] },
+  ]
+
+  const result = selectAffordableMenu(
+    recipes,
+    5,
+    1,
+    1,
+    [{ tag_ingredient: 'riz', poids_grammes: 1000, prix: 1 }],
+    [{ tag_ingredient: 'riz', quantite_accumulee: 900 }],
+    { mode: 'anti-gaspi' },
+  )
+
+  assert.equal(result.success, true)
+  assert.equal(result.menu[0].id, 1)
 })

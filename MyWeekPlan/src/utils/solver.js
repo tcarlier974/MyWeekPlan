@@ -1,5 +1,5 @@
 import { supabase } from '../supabase'
-import { selectAffordableMenu, validatePlanningInput } from './menuCalculations'
+import { normalizePlanningMode, priceMenu, selectAffordableMenu, validatePlanningInput } from './menuCalculations'
 
 // Kept for the reroll function; weekly planning uses priceMenu so its calculation
 // is shared with the shopping-list workflow.
@@ -18,7 +18,7 @@ export function getBestProduct(tag, besoinTotalGrammes, produitsDb) {
   }
 }
 
-export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions = 1) {
+export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions = 1, mode = 'balanced') {
   if (!validatePlanningInput(targetBudget, mealsCount, portions)) {
     return planningFailure('Le budget, le nombre de repas et les portions doivent être positifs.')
   }
@@ -45,6 +45,7 @@ export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions 
       portions,
       productsResult.data || [],
       inventoryResult.data || [],
+      { mode: normalizePlanningMode(mode) },
     )
   } catch (error) {
     console.error(error)
@@ -52,56 +53,77 @@ export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions 
   }
 }
 
-export async function getAlternativeMeal(currentMenu, indexToReplace, targetBudget, portions = 1) {
+export async function getAlternativeMeal(currentMenu, indexToReplace, targetBudget, portions = 1, mode = 'balanced') {
   if (!supabase) {
     return { succes: false, erreur: 'Supabase n’est pas configuré.' }
   }
 
   try {
-    const { data: recettesDb } = await supabase.from('recettes').select('*')
-    const { data: produitsDb } = await supabase.from('produits_magasin').select('*')
+    const [recettesResult, produitsResult, inventoryResult] = await Promise.all([
+      supabase.from('recettes').select('*'),
+      supabase.from('produits_magasin').select('*'),
+      supabase.from('inventaire_frigo').select('*'),
+    ])
 
-    const recettesAvecPrix = recettesDb.map(recette => {
-      let prixTotal = 0
-      if (recette.ingredients) {
-        recette.ingredients.forEach(ingredient => {
-          const besoinTotal = (ingredient.besoin_grammes || 0) * portions
-          prixTotal += getBestProduct(ingredient.tag, besoinTotal, produitsDb).cout
-        })
-      }
-      return { ...recette, prixCalcule: prixTotal }
-    })
+    if (recettesResult.error || produitsResult.error || inventoryResult.error) {
+      throw new Error('Erreur de chargement des données de reroll.')
+    }
+
+    const recettesDb = recettesResult.data || []
+    const produitsDb = produitsResult.data || []
+    const inventory = inventoryResult.data || []
 
     const menuSansAncien = currentMenu.filter((_, index) => index !== indexToReplace)
     const coutRestant = menuSansAncien.reduce((sum, repas) => sum + repas.prixCalcule, 0)
     const budgetDispo = targetBudget - coutRestant
     const currentIds = currentMenu.map(recette => recette.id)
-    const recettesPossibles = recettesAvecPrix.filter(
-      recette => !currentIds.includes(recette.id) && recette.prixCalcule <= budgetDispo,
-    )
 
-    if (recettesPossibles.length > 0) {
-      return {
-        succes: true,
-        recette: recettesPossibles[Math.floor(Math.random() * recettesPossibles.length)],
-      }
+    const candidates = recettesDb
+      .filter(recette => !currentIds.includes(recette.id))
+      .map(recette => {
+        const candidateMenu = [...menuSansAncien, recette]
+        const priced = priceMenu(candidateMenu, portions, produitsDb, inventory)
+        const duration = candidateMenu.reduce((sum, item) => sum + (Number.isFinite(item.temps_prep) ? item.temps_prep : 0), 0)
+        return {
+          recette: { ...recette, prixCalcule: priced.totalCost },
+          totalCost: priced.totalCost,
+          missingTags: priced.missingTags,
+          duration,
+          score: scoreRerollCandidate(normalizePlanningMode(mode), priced.totalCost, duration, priced.missingTags.length),
+        }
+      })
+      .filter(candidate => candidate.missingTags.length === 0 && candidate.totalCost <= budgetDispo)
+
+    if (candidates.length === 0) {
+      return { succes: false, erreur: 'Aucune recette de remplacement ne respecte le budget.' }
     }
 
-    const autresRecettes = recettesAvecPrix.filter(recette => !currentIds.includes(recette.id))
-    if (autresRecettes.length > 0) {
-      return {
-        succes: true,
-        recette: autresRecettes[Math.floor(Math.random() * autresRecettes.length)],
-        depassement: true,
-      }
-    }
+    candidates.sort((left, right) => left.score - right.score || left.totalCost - right.totalCost || left.duration - right.duration)
 
-    return { succes: false, erreur: "Pas d'autre recette dispo." }
+    return {
+      succes: true,
+      recette: candidates[0].recette,
+    }
   } catch (error) {
+    console.error(error)
     return { succes: false, erreur: 'Erreur serveur' }
   }
 }
 
 function planningFailure(error) {
   return { success: false, menu: [], totalCost: 0, error }
+}
+
+function scoreRerollCandidate(mode, totalCost, duration, missingTagsCount) {
+  switch (mode) {
+    case 'economic':
+      return totalCost * 1000 + duration * 10 + missingTagsCount * 10000
+    case 'quick':
+      return duration * 1000 + totalCost * 10 + missingTagsCount * 10000
+    case 'anti-gaspi':
+      return missingTagsCount * 100000 + totalCost * 100 + duration
+    case 'balanced':
+    default:
+      return totalCost * 500 + duration * 50 + missingTagsCount * 10000
+  }
 }

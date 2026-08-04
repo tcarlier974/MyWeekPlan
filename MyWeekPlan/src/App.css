@@ -317,6 +317,24 @@ body {
   outline: none;
   transition: border-color 0.2s;
 }
+.input-group select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 15px;
+  border-radius: 12px;
+  border: 2px solid var(--border-color);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  background-color: #f9fafb;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-group select:focus {
+  border-color: var(--primary);
+  background-color: var(--bg-card);
+  box-shadow: 0 0 0 4px rgba(47, 125, 96, 0.12);
+}
 .input-group input:focus {
   border-color: var(--primary);
   background-color: var(--bg-card);

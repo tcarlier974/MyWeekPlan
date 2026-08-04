@@ -84,14 +84,16 @@ Faire évoluer MyWeekPlan d’un planificateur de menus fonctionnel vers une vra
 ### 3.1 Rendre la génération plus intelligente
 
 - [x] Remplacer la recherche exhaustive par une recherche bornée pour éviter les explosions combinatoires.
-- [ ] Ajouter un mode “menu économique”.
-- [ ] Ajouter un mode “menu équilibré”.
-- [ ] Ajouter un mode “rapide à préparer”.
-- [ ] Ajouter un mode “anti-gaspi prioritaire”.
+- [x] Ajouter un mode “menu économique”.
+- [x] Ajouter un mode “menu équilibré”.
+- [x] Ajouter un mode “rapide à préparer”.
+- [x] Ajouter un mode “anti-gaspi prioritaire”.
 
 ### 3.2 Verrouillage et reroll
 
 - [x] Verrouiller un plat avant reroll.
+- [x] Le reroll refuse toute recette hors budget.
+- [x] Le reroll respecte le mode de planification actif.
 - [ ] Verrouiller plusieurs plats d’un coup.
 - [ ] Conserver l’ordre du menu lors des rerolls.
 - [ ] Proposer automatiquement des alternatives proches du plat verrouillé.

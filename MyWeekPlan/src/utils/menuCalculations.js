@@ -61,7 +61,11 @@ export function priceMenu(menu, portions, products, inventory) {
   return { totalCost, meals, missingTags }
 }
 
-export function selectAffordableMenu(recipes, budget, mealsCount, portions, products, inventory) {
+export function normalizePlanningMode(mode) {
+  return ['economic', 'balanced', 'quick', 'anti-gaspi'].includes(mode) ? mode : 'balanced'
+}
+
+export function selectAffordableMenu(recipes, budget, mealsCount, portions, products, inventory, options = {}) {
   if (!validatePlanningInput(budget, mealsCount, portions)) {
     return planningFailure('Le budget, le nombre de repas et les portions doivent être positifs.')
   }
@@ -69,6 +73,8 @@ export function selectAffordableMenu(recipes, budget, mealsCount, portions, prod
   if (!Array.isArray(recipes) || recipes.length < mealsCount) {
     return planningFailure('Il n’y a pas assez de recettes disponibles.')
   }
+
+  const mode = normalizePlanningMode(options.mode)
 
   const beamWidth = 20
   let frontier = [{
@@ -87,7 +93,8 @@ export function selectAffordableMenu(recipes, budget, mealsCount, portions, prod
         if (state.usedIds.has(recipe.id)) continue
 
         const candidateMenu = [...state.menu, recipe]
-        const priced = priceMenu(candidateMenu, portions, products || [], inventory || [])
+        const evaluated = evaluateMenu(candidateMenu, portions, products || [], inventory || [], mode)
+        const priced = evaluated.priced
 
         if (priced.missingTags.length > 0) {
           sawMissingProduct = true
@@ -100,7 +107,7 @@ export function selectAffordableMenu(recipes, budget, mealsCount, portions, prod
           menu: priced.meals,
           usedIds: new Set([...state.usedIds, recipe.id]),
           priced,
-          score: countPurchasedTags(candidateMenu, portions, inventory || []),
+          score: evaluated.score,
         })
       }
     }
@@ -146,6 +153,29 @@ function planningFailure(error) {
   return { success: false, menu: [], totalCost: 0, error }
 }
 
-function countPurchasedTags(menu, portions, inventory) {
-  return Object.keys(subtractInventory(getRequiredQuantities(menu, portions), inventory)).length
+function evaluateMenu(menu, portions, products, inventory, mode) {
+  const priced = priceMenu(menu, portions, products, inventory)
+  const requirements = getRequiredQuantities(menu, portions)
+  const remaining = subtractInventory(requirements, inventory)
+  const remainingQuantity = Object.values(remaining).reduce((sum, quantity) => sum + quantity, 0)
+  const duration = menu.reduce((sum, recipe) => sum + (Number.isFinite(recipe.temps_prep) ? recipe.temps_prep : 0), 0)
+
+  return {
+    priced,
+    score: computeModeScore(mode, priced.totalCost, remainingQuantity, duration),
+  }
+}
+
+function computeModeScore(mode, totalCost, remainingQuantity, duration) {
+  switch (normalizePlanningMode(mode)) {
+    case 'economic':
+      return totalCost * 1000 + remainingQuantity / 100 + duration / 100
+    case 'quick':
+      return duration * 1000 + totalCost * 10 + remainingQuantity / 1000
+    case 'anti-gaspi':
+      return remainingQuantity * 10 + totalCost * 100 + duration
+    case 'balanced':
+    default:
+      return totalCost * 500 + remainingQuantity + duration * 10
+  }
 }

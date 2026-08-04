@@ -116,6 +116,7 @@ function App() {
   const [mealsCount, setMealsCount] = useState(7)
   // NOUVEAU : On définit 2 portions par défaut
   const [portions, setPortions] = useState(2) 
+  const [planningMode, setPlanningMode] = useState('balanced')
   const [inventaireFrigo, setInventaireFrigo] = useState([]);
   const [tagsDisponibles, setTagsDisponibles] = useState([])
   const [menu, setMenu] = useState([])
@@ -134,6 +135,13 @@ function App() {
     { id: 2, label: 'Menu' },
     { id: 3, label: 'Courses' },
   ]
+
+  const planningModeLabels = {
+    economic: 'Économique',
+    balanced: 'Équilibré',
+    quick: 'Rapide',
+    'anti-gaspi': 'Anti-gaspi',
+  }
 
   const isBusy = isLoading || isGeneratingShoppingList || rerollingIndex !== null
   const clampQuantity = (value) => {
@@ -158,7 +166,7 @@ function App() {
     
     try {
       // On passe la variable portions au solveur
-      const resultat = await generateWeeklyMenu(budget, mealsCount, portions)
+      const resultat = await generateWeeklyMenu(budget, mealsCount, portions, planningMode)
       const success = resultat?.success ?? resultat?.succes ?? false
       const errorMessage = resultat?.error ?? resultat?.erreur ?? null
 
@@ -197,7 +205,7 @@ function App() {
 
     setRerollingIndex(index) 
     
-    const resultat = await getAlternativeMeal(menu, index, budget, portions)
+    const resultat = await getAlternativeMeal(menu, index, budget, portions, planningMode)
     
     if (resultat.succes) {
       const nouveauMenu = [...menu]
@@ -391,6 +399,17 @@ function App() {
                 <span className="input-help">Le calcul est optimisé pour 1 à 12 personnes.</span>
               </div>
             </div>
+
+            <div className="input-group">
+              <label>Mode de planification</label>
+              <select value={planningMode} onChange={(e) => setPlanningMode(e.target.value)}>
+                <option value="economic">Économique</option>
+                <option value="balanced">Équilibré</option>
+                <option value="quick">Rapide</option>
+                <option value="anti-gaspi">Anti-gaspi</option>
+              </select>
+              <span className="input-help">Choisis l’angle de sélection du menu avant de lancer la génération.</span>
+            </div>
           </div>
           <SectionFrigo 
             inventaireFrigo={inventaireFrigo} 
@@ -414,7 +433,7 @@ function App() {
             <button className="btn-back" onClick={() => setCurrentStep(1)}>
               Modifier le budget
             </button>
-            <span className="status-pill status-pill-success">Menu généré</span>
+            <span className="status-pill status-pill-success">{planningModeLabels[planningMode] || 'Équilibré'}</span>
           </div>
 
           {isGeneratingShoppingList && (
