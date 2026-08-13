@@ -4,8 +4,8 @@ import { SpeedInsights } from '@vercel/speed-insights/react'
 import { generateWeeklyMenu, getAlternativeMeal } from './utils/solver'
 import { generateShoppingList } from './utils/shoppingList'
 import { supabase } from './supabase'
-import { getRequiredQuantities, subtractInventory } from './utils/menuCalculations'
-import instructionsData from './instructions_completes_a_ajouter.json'
+import { getRequiredQuantities, subtractInventory } from './utils/menuCalculations';
+import instructionsData from '../instructions_completes_a_ajouter.json';
 import './App.css'
 
 // Attribue un émoji selon le tag
