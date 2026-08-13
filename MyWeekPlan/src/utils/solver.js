@@ -36,11 +36,14 @@ export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions 
       throw new Error('Erreur de chargement des données de planification.')
     }
     
-    const recipes = recipesResult.data || []
+    // Ajout d'aléatoire : on mélange les recettes avant de les traiter
+    // pour ne pas toujours avoir la même semaine générée à budget égal
+    let recipes = recipesResult.data || []
+    recipes = recipes.sort(() => Math.random() - 0.5)
+
     const products = productsResult.data || []
     const inventory = inventoryResult.data || []
 
-    // TENTATIVE 1 : On essaie de respecter le budget strict de l'utilisateur
     let result = selectAffordableMenu(
       recipes,
       targetBudget,
@@ -51,13 +54,11 @@ export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions 
       { mode: normalizePlanningMode(mode) }
     )
 
-    // TENTATIVE 2 (FALLBACK) : Si l'algorithme échoue à cause du budget, on retire la limite !
-    // L'algorithme renverra le menu le plus optimisé possible, même s'il dépasse.
-    // L'interface affichera ce dépassement en rouge.
+    // FALLBACK : Si le budget est trop strict, on force la génération (Best-effort)
     if (!result.success && result.error && result.error.includes('budget')) {
       result = selectAffordableMenu(
         recipes,
-        Number.POSITIVE_INFINITY, // Budget infini pour forcer la génération
+        Number.POSITIVE_INFINITY,
         mealsCount,
         portions,
         products,
@@ -98,15 +99,19 @@ export async function getAlternativeMeal(currentMenu, indexToReplace, targetBudg
     const budgetDispo = targetBudget - coutRestant
     const currentIds = currentMenu.map(recette => recette.id)
 
-    // On prépare tous les candidats qui ont tous leurs ingrédients dans la base
     const allCandidates = recettesDb
       .filter(recette => !currentIds.includes(recette.id))
       .map(recette => {
         const candidateMenu = [...menuSansAncien, recette]
         const priced = priceMenu(candidateMenu, portions, produitsDb, inventory)
         const duration = candidateMenu.reduce((sum, item) => sum + (Number.isFinite(item.temps_prep) ? item.temps_prep : 0), 0)
+        
+        // CORRECTION DU PRIX : On va chercher le prix isolé de CE plat dans le menu évalué
+        const pricedCandidate = priced.meals.find(m => m.id === recette.id)
+        const coutDeCetteRecetteSeule = pricedCandidate ? pricedCandidate.prixCalcule : 0
+
         return {
-          recette: { ...recette, prixCalcule: priced.totalCost },
+          recette: { ...recette, prixCalcule: coutDeCetteRecetteSeule },
           totalCost: priced.totalCost,
           missingTags: priced.missingTags,
           duration,
@@ -119,19 +124,22 @@ export async function getAlternativeMeal(currentMenu, indexToReplace, targetBudg
       return { succes: false, erreur: 'Aucune recette de remplacement (ingrédients manquants en base).' }
     }
 
-    // TENTATIVE 1 : On essaie de trouver un candidat qui rentre dans le budget restant
     let validCandidates = allCandidates.filter(candidate => candidate.totalCost <= budgetDispo)
 
-    // TENTATIVE 2 (FALLBACK) : Si rien ne rentre dans le budget, on prend les recettes au-dessus du budget
     if (validCandidates.length === 0) {
       validCandidates = allCandidates
     }
 
+    // On trie du meilleur candidat au moins bon
     validCandidates.sort((left, right) => left.score - right.score || left.totalCost - right.totalCost || left.duration - right.duration)
+
+    // CORRECTION DE L'ALÉATOIRE : On pioche au hasard parmi le Top 5 des meilleures recettes
+    const topN = Math.min(5, validCandidates.length)
+    const randomIndex = Math.floor(Math.random() * topN)
 
     return {
       succes: true,
-      recette: validCandidates[0].recette,
+      recette: validCandidates[randomIndex].recette,
     }
   } catch (error) {
     console.error(error)
