@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Settings2, ChefHat, ShoppingBag, Plus, RefreshCw, Lock, Unlock, X, Check } from 'lucide-react'
+import { Settings2, ChefHat, ShoppingBag, Plus, RefreshCw, Lock, Unlock, X, Check, ArrowRight, Sparkles, Refrigerator, ListCheck } from 'lucide-react'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { generateWeeklyMenu, getAlternativeMeal } from './utils/solver'
@@ -12,7 +13,7 @@ import './App.css'
 // --- UTILITAIRES & HAPTIQUES ---
 const vibrate = () => {
   if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-    window.navigator.vibrate(50); // Vibration subtile sur mobile
+    window.navigator.vibrate(50);
   }
 };
 
@@ -33,7 +34,7 @@ const formatQuantity = (tag, quantite) => {
   return `${quantite} ${liquides.includes(tag) ? 'ml' : 'g'}`;
 };
 
-// --- COMPOSANTS UI ---
+// --- COMPOSANTS UI COMMUNS ---
 const HaloImage = ({ url, tag, nom }) => (
   <div className="halo-visual w-24 h-24 sm:w-32 sm:h-32 shrink-0">
     {url ? (
@@ -44,8 +45,121 @@ const HaloImage = ({ url, tag, nom }) => (
   </div>
 );
 
-// --- APPLICATION ---
-export default function App() {
+// ==========================================
+// 1. COMPOSANT : LANDING PAGE (VITRINE)
+// ==========================================
+const LandingPage = () => {
+  const navigate = useNavigate();
+
+  const handleStart = () => {
+    vibrate();
+    navigate('/app');
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col relative pb-24 md:pb-0">
+      {/* HEADER STICKY */}
+      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b-[3px] border-foreground">
+        <div className="container mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
+          <span className="font-display font-black text-2xl uppercase tracking-tighter">MyWeekPlan.</span>
+          <button onClick={handleStart} className="hidden md:flex items-center gap-2 font-bold uppercase tracking-widest text-sm hover:text-primary transition-colors">
+            L'App <ArrowRight size={18} strokeWidth={3} />
+          </button>
+        </div>
+      </header>
+
+      {/* HERO SECTION */}
+      <main className="container mx-auto px-4 md:px-8 py-16 md:py-24 flex flex-col lg:flex-row gap-12 lg:items-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+          className="flex-1 space-y-8"
+        >
+          <p className="font-display font-bold uppercase tracking-[0.3em] text-primary text-sm">Mode de vie minimaliste</p>
+          <h1 className="text-6xl md:text-8xl lg:text-9xl font-black uppercase leading-[0.9] tracking-tighter">
+            Planifiez <br/>
+            Votre <br/>
+            Semaine <span className="text-primary italic">En 3s.</span>
+          </h1>
+          <p className="font-sans font-semibold text-lg md:text-xl text-muted-foreground max-w-lg leading-relaxed">
+            Ne perdez plus de temps à réfléchir. L'intelligence artificielle conçoit votre menu, déduit ce qu'il reste dans votre frigo, et génère votre liste de courses.
+          </p>
+          
+          <div className="hidden md:block">
+            <button onClick={handleStart} className="brutal-btn w-auto text-xl py-5 brutal-shadow-hover">
+              Commencer l'expérience
+            </button>
+          </div>
+        </motion.div>
+
+        {/* MOCKUP CSS ANIMÉ */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9, rotate: -2 }} animate={{ opacity: 1, scale: 1, rotate: 2 }} transition={{ duration: 0.8, delay: 0.2 }}
+          className="flex-1 w-full max-w-xl mx-auto lg:mr-0"
+        >
+          <div className="brutal-border bg-white p-4 md:p-6 shadow-[12px_12px_0px_0px_rgba(18,18,18,1)] flex flex-col gap-4 aspect-square md:aspect-[4/3] overflow-hidden relative group">
+            {/* Faux Header UI */}
+            <div className="flex justify-between items-center border-b-[3px] border-foreground pb-4">
+              <div className="w-1/3 h-6 bg-foreground brutal-border"></div>
+              <div className="w-12 h-12 bg-primary brutal-border rounded-full flex items-center justify-center font-bold">MWP</div>
+            </div>
+            
+            {/* Faux Bento UI */}
+            <div className="grid grid-cols-2 gap-4 flex-1">
+              <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 4 }} className="bg-primary brutal-border p-4 flex flex-col justify-end">
+                <span className="text-4xl font-black">50€</span>
+              </motion.div>
+              <div className="bg-muted brutal-border p-4 flex flex-col gap-2">
+                <div className="h-4 bg-foreground w-full brutal-border"></div>
+                <div className="h-4 bg-foreground w-3/4 brutal-border"></div>
+                <div className="h-4 bg-foreground w-1/2 brutal-border mt-auto"></div>
+              </div>
+              <div className="col-span-2 bg-white brutal-border p-4 flex items-center gap-4 group-hover:bg-primary transition-colors duration-500">
+                <div className="w-12 h-12 bg-background brutal-border flex items-center justify-center text-xl">🛒</div>
+                <div className="h-4 bg-foreground w-1/2 brutal-border"></div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </main>
+
+      {/* 3 PILIERS */}
+      <section className="container mx-auto px-4 md:px-8 py-16 md:py-24">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-10">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="brutal-card bg-primary text-primary-foreground group">
+            <Sparkles size={48} strokeWidth={2} className="mb-8 group-hover:rotate-12 transition-transform" />
+            <h3 className="text-3xl font-black uppercase mb-4 leading-tight">Algorithme IA</h3>
+            <p className="font-bold text-sm">Des repas équilibrés, économiques ou anti-gaspi, calculés selon votre budget exact.</p>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="brutal-card bg-white mt-0 md:mt-12 group">
+            <Refrigerator size={48} strokeWidth={2} className="mb-8 group-hover:-rotate-12 transition-transform" />
+            <h3 className="text-3xl font-black uppercase mb-4 leading-tight">Frigo Anti-Gaspi</h3>
+            <p className="font-bold text-sm text-muted-foreground">Déclarez vos restes. L'intelligence les déduit automatiquement de vos prochaines courses.</p>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="brutal-card bg-background mt-0 md:mt-24 group">
+            <ListCheck size={48} strokeWidth={2} className="mb-8 group-hover:scale-110 transition-transform" />
+            <h3 className="text-3xl font-black uppercase mb-4 leading-tight">Liste Automatique</h3>
+            <p className="font-bold text-sm text-muted-foreground">Une liste de courses organisée par rayons, générée en temps réel, prête à être cochée.</p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* CTA MOBILE FIXE */}
+      <div className="md:hidden fixed bottom-4 left-4 right-4 z-50">
+        <button onClick={handleStart} className="brutal-btn w-full text-xl py-5 shadow-[4px_4px_0px_0px_rgba(18,18,18,1)]">
+          Commencer l'expérience
+        </button>
+      </div>
+    </div>
+  );
+};
+
+
+// ==========================================
+// 2. COMPOSANT : L'APPLICATION (PLANNER)
+// ==========================================
+const PlannerApp = () => {
+  const navigate = useNavigate(); // Permet de retourner à l'accueil si besoin
+  
   const [currentStep, setCurrentStep] = useState(1);
   const [budget, setBudget] = useState(50);
   const [mealsCount, setMealsCount] = useState(7);
@@ -143,12 +257,14 @@ export default function App() {
   };
 
   return (
-    <div className="container mx-auto px-4 max-w-6xl py-12 lg:py-20 flex flex-col min-h-screen">
+    <div className="container mx-auto px-4 max-w-6xl py-8 lg:py-16 flex flex-col min-h-screen">
       
       {/* --- HEADER ÉDITORIAL --- */}
-      <header className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
+      <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-          <p className="font-display font-bold uppercase tracking-[0.3em] text-primary mb-4 text-sm">Édition / Hebdomadaire</p>
+          <button onClick={() => navigate('/')} className="font-display font-bold uppercase tracking-[0.3em] text-primary mb-4 text-sm flex items-center gap-2 hover:opacity-70 transition-opacity">
+            ← Retour Vitrine
+          </button>
           <h1 className="text-6xl md:text-8xl font-black uppercase leading-none tracking-tighter">
             Le<br />Menu.
           </h1>
@@ -171,10 +287,10 @@ export default function App() {
         
         {/* === ÉTAPE 1 : CONFIGURATION === */}
         {currentStep === 1 && (
-          <motion.div key="step1" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="flex-1">
+          <motion.div key="step1" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="flex-1 pb-24 md:pb-0 relative z-10">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8">
               
-              {/* Grand Bloc Budget (Asymétrique) */}
+              {/* Grand Bloc Budget */}
               <motion.div variants={itemVariants} className="brutal-card md:col-span-8 bg-white">
                 <h2 className="font-display uppercase tracking-widest text-sm text-muted-foreground mb-8">Définition des ressources</h2>
                 <div className="flex flex-col md:flex-row md:items-end gap-4 mt-auto">
@@ -193,7 +309,7 @@ export default function App() {
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
                     <span className="font-bold uppercase">Repas</span>
-                    <div className="flex items-center brutal-border bg-white">
+                    <div className="flex items-center brutal-border bg-white text-foreground">
                       <button onClick={() => { vibrate(); setMealsCount(Math.max(1, mealsCount - 1)); }} className="px-3 py-1 hover:bg-muted font-bold">-</button>
                       <span className="px-4 font-bold border-x-[3px] border-foreground">{mealsCount}</span>
                       <button onClick={() => { vibrate(); setMealsCount(Math.min(14, mealsCount + 1)); }} className="px-3 py-1 hover:bg-muted font-bold">+</button>
@@ -202,7 +318,7 @@ export default function App() {
 
                   <div className="flex justify-between items-center">
                     <span className="font-bold uppercase">Portions</span>
-                    <div className="flex items-center brutal-border bg-white">
+                    <div className="flex items-center brutal-border bg-white text-foreground">
                       <button onClick={() => { vibrate(); setPortions(Math.max(1, portions - 1)); }} className="px-3 py-1 hover:bg-muted font-bold">-</button>
                       <span className="px-4 font-bold border-x-[3px] border-foreground">{portions}</span>
                       <button onClick={() => { vibrate(); setPortions(Math.min(12, portions + 1)); }} className="px-3 py-1 hover:bg-muted font-bold">+</button>
@@ -211,15 +327,15 @@ export default function App() {
                 </div>
               </motion.div>
 
-              {/* Bloc Frigo (Soustrait des courses) */}
+              {/* Bloc Frigo */}
               <motion.div variants={itemVariants} className="brutal-card md:col-span-12 bg-white">
                 <h2 className="font-display uppercase tracking-widest text-sm mb-6 border-b-[3px] border-foreground pb-4">Dans mon frigo (Soustrait des courses)</h2>
                 
-                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="flex flex-col md:flex-row gap-4 mb-6 relative z-20">
                   <select 
                     value={tagSelectionne}
                     onChange={(e) => setTagSelectionne(e.target.value)}
-                    className="brutal-input bg-white flex-1"
+                    className="brutal-input bg-white flex-1 relative z-20"
                   >
                     <option value="">+ Ajouter un ingrédient...</option>
                     {tagsDisponibles.map(tag => (
@@ -227,7 +343,7 @@ export default function App() {
                     ))}
                   </select>
                   <button 
-                    className="brutal-btn py-3 px-6 text-sm"
+                    className="brutal-btn py-3 px-6 text-sm relative z-20"
                     disabled={!tagSelectionne}
                     onClick={() => {
                       vibrate();
@@ -251,7 +367,7 @@ export default function App() {
                             type="number" 
                             value={item.quantite_accumulee} 
                             onChange={(e) => handleUpdateFrigo(item.tag_ingredient, Number(e.target.value))}
-                            className="w-20 brutal-border text-center font-bold bg-white outline-none px-1 py-1"
+                            className="w-20 brutal-border text-center font-bold bg-white outline-none px-1 py-1 relative z-20"
                           />
                           <span className="text-xs font-bold uppercase text-muted-foreground">g/ml</span>
                         </div>
@@ -262,7 +378,7 @@ export default function App() {
               </motion.div>
 
               {/* Action Génération */}
-              <motion.div variants={itemVariants} className="md:col-span-12">
+              <motion.div variants={itemVariants} className="md:col-span-12 relative z-20">
                 <button className="brutal-btn w-full text-2xl py-6 brutal-shadow-hover" onClick={handleGenerateMenuClick} disabled={isBusy}>
                   {isLoading ? 'Conception en cours...' : 'Générer l\'Édition'}
                 </button>
@@ -273,22 +389,22 @@ export default function App() {
 
         {/* === ÉTAPE 2 : MENU === */}
         {currentStep === 2 && (
-          <motion.div key="step2" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="flex-1">
+          <motion.div key="step2" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="flex-1 pb-24 md:pb-0 relative z-10">
             
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b-[3px] border-foreground pb-6">
               <div>
                 <h2 className="text-4xl font-black uppercase">Sélection</h2>
                 <p className="font-bold text-muted-foreground mt-2">Estimation : {totalCost.toFixed(2)} €</p>
               </div>
-              <button className="brutal-btn mt-6 md:mt-0" onClick={handleGenerateListClick} disabled={isBusy}>
+              <button className="brutal-btn mt-6 md:mt-0 relative z-20" onClick={handleGenerateListClick} disabled={isBusy}>
                 {isGeneratingShoppingList ? 'Génération...' : 'Liste de Courses'}
               </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {menu.map((repas, index) => (
-                <motion.div key={index} variants={itemVariants} whileHover={{ y: -5 }} className="brutal-card bg-white cursor-pointer group" onClick={() => { vibrate(); setSelectedRecipe(repas); }}>
-                  <div className="absolute top-4 right-4 z-10 flex gap-2">
+                <motion.div key={index} variants={itemVariants} whileHover={{ y: -5 }} className="brutal-card bg-white cursor-pointer group relative z-20" onClick={() => { vibrate(); setSelectedRecipe(repas); }}>
+                  <div className="absolute top-4 right-4 z-30 flex gap-2">
                     <button className="w-10 h-10 bg-white brutal-border flex items-center justify-center hover:bg-primary transition-colors"
                       onClick={(e) => { e.stopPropagation(); vibrate(); setLockedMeals(prev => ({ ...prev, [index]: !prev[index] })); }}>
                       {lockedMeals[index] ? <Lock size={18} strokeWidth={3} /> : <Unlock size={18} strokeWidth={3} />}
@@ -310,14 +426,14 @@ export default function App() {
 
         {/* === ÉTAPE 3 : COURSES === */}
         {currentStep === 3 && shoppingList && (
-          <motion.div key="step3" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="flex-1">
+          <motion.div key="step3" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="flex-1 pb-24 md:pb-0 relative z-10">
             <div className="flex items-end justify-between mb-12 border-b-[3px] border-foreground pb-6">
               <h2 className="text-4xl font-black uppercase">Liste de Courses</h2>
             </div>
             
             <div className="space-y-12">
               {Object.entries(shoppingList).map(([rayon, items]) => (
-                <motion.div key={rayon} variants={itemVariants} className="brutal-card bg-white p-0">
+                <motion.div key={rayon} variants={itemVariants} className="brutal-card bg-white p-0 relative z-20">
                   <div className="bg-primary border-b-[3px] border-foreground px-6 py-4">
                     <h3 className="font-display font-bold uppercase tracking-widest text-lg">{rayon}</h3>
                   </div>
@@ -354,7 +470,7 @@ export default function App() {
         {selectedRecipe && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
             onClick={() => setSelectedRecipe(null)}
           >
             <motion.div 
@@ -393,8 +509,8 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* --- NAVIGATION MOBILE FIXE --- */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background border-t-[3px] border-foreground p-4 flex justify-between">
+      {/* --- NAVIGATION MOBILE FIXE (APP) --- */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t-[3px] border-foreground p-4 flex justify-between">
         <button onClick={() => { vibrate(); setCurrentStep(1); }} className={`flex-1 flex flex-col items-center gap-1 font-bold ${currentStep === 1 ? 'text-primary' : 'text-foreground'}`}><Settings2 size={24} />Config</button>
         <button onClick={() => { vibrate(); setCurrentStep(2); }} className={`flex-1 flex flex-col items-center gap-1 font-bold border-l-[3px] border-foreground ${currentStep === 2 ? 'text-primary' : 'text-foreground'}`} disabled={!menu.length}><ChefHat size={24} />Menu</button>
         <button onClick={() => { vibrate(); setCurrentStep(3); }} className={`flex-1 flex flex-col items-center gap-1 font-bold border-l-[3px] border-foreground ${currentStep === 3 ? 'text-primary' : 'text-foreground'}`} disabled={!shoppingList}><ShoppingBag size={24} />Courses</button>
@@ -403,5 +519,20 @@ export default function App() {
       <Analytics />
       <SpeedInsights />
     </div>
+  );
+};
+
+
+// ==========================================
+// 3. COMPOSANT RACINE : LE ROUTEUR (APP MAIN)
+// ==========================================
+export default function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/app" element={<PlannerApp />} />
+      </Routes>
+    </Router>
   );
 }
