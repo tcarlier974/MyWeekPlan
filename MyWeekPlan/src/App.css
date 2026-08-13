@@ -1,6 +1,8 @@
 /* src/App.css */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@400;700;900&display=swap');
 
+@reference "tailwindcss";
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -25,9 +27,9 @@
     --radius: 0.5rem;
   }
  
-  body {
-    @apply bg-background text-foreground font-sans;
-  }
+body {
+  @apply bg-gray-50 text-gray-900;
+}
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
