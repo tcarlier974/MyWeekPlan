@@ -12,7 +12,7 @@ import './App.css'
 // --- UTILITAIRES & HAPTIQUES ---
 const vibrate = () => {
   if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-    window.navigator.vibrate(50); // Vibration subtile
+    window.navigator.vibrate(50); // Vibration subtile sur mobile
   }
 };
 
@@ -53,9 +53,11 @@ export default function App() {
   const [planningMode, setPlanningMode] = useState('balanced');
   const [inventaireFrigo, setInventaireFrigo] = useState([]);
   const [tagsDisponibles, setTagsDisponibles] = useState([]);
+  const [tagSelectionne, setTagSelectionne] = useState("");
   const [menu, setMenu] = useState([]);
   const [totalCost, setTotalCost] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingShoppingList, setIsGeneratingShoppingList] = useState(false);
   const [shoppingList, setShoppingList] = useState(null);
   const [checkedItems, setCheckedItems] = useState({});
   const [lockedMeals, setLockedMeals] = useState({});
@@ -66,7 +68,9 @@ export default function App() {
     return acc;
   }, {});
 
-  // Supabase (Lecture seule pour l'exemple, garde ta logique)
+  const isBusy = isLoading || isGeneratingShoppingList;
+
+  // --- LOGIQUE BASE DE DONNÉES ---
   useEffect(() => {
     async function chargerDonnees() {
       if (!supabase) return;
@@ -79,6 +83,23 @@ export default function App() {
     }
     chargerDonnees();
   }, []);
+
+  const handleUpdateFrigo = async (tag, quantite) => {
+    const safeQ = Math.max(0, quantite);
+    setInventaireFrigo(prev => prev.map(item => item.tag_ingredient === tag ? { ...item, quantite_accumulee: safeQ } : item));
+    if (supabase) await supabase.from('inventaire_frigo').upsert({ tag_ingredient: tag, quantite_accumulee: safeQ }, { onConflict: 'tag_ingredient' });
+  };
+
+  const handleAjouterFrigo = async (tag) => {
+    if (!tag || inventaireFrigo.some(item => item.tag_ingredient === tag)) return;
+    const nouvelItem = { tag_ingredient: tag, quantite_accumulee: 0 };
+    setInventaireFrigo(prev => [...prev, nouvelItem]);
+    if (supabase) await supabase.from('inventaire_frigo').insert([nouvelItem]);
+  };
+
+  const toggleCheck = (itemId) => {
+    setCheckedItems(prev => ({ ...prev, [itemId]: !prev[itemId] }));
+  };
 
   const handleGenerateMenuClick = async () => {
     vibrate();
@@ -95,12 +116,27 @@ export default function App() {
     }
   };
 
+  const handleGenerateListClick = async () => {
+    vibrate();
+    if (!menu.length) return;
+    setIsGeneratingShoppingList(true);
+    try {
+      const list = await generateShoppingList(menu, portions);
+      setShoppingList(list || {});
+      setCurrentStep(3);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsGeneratingShoppingList(false);
+    }
+  };
+
+  // --- ANIMATIONS ---
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0, transition: { staggerChildren: 0.1 } },
     exit: { opacity: 0, y: -20 }
   };
-
   const itemVariants = {
     initial: { opacity: 0, scale: 0.95 },
     animate: { opacity: 1, scale: 1 }
@@ -109,7 +145,7 @@ export default function App() {
   return (
     <div className="container mx-auto px-4 max-w-6xl py-12 lg:py-20 flex flex-col min-h-screen">
       
-      {/* HEADER ÉDITORIAL */}
+      {/* --- HEADER ÉDITORIAL --- */}
       <header className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
           <p className="font-display font-bold uppercase tracking-[0.3em] text-primary mb-4 text-sm">Édition / Hebdomadaire</p>
@@ -130,10 +166,10 @@ export default function App() {
         </div>
       </header>
 
-      {/* CONTENU PRINCIPAL */}
+      {/* --- CONTENU PRINCIPAL --- */}
       <AnimatePresence mode="wait">
         
-        {/* --- ÉTAPE 1 : CONFIGURATION --- */}
+        {/* === ÉTAPE 1 : CONFIGURATION === */}
         {currentStep === 1 && (
           <motion.div key="step1" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="flex-1">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8">
@@ -175,9 +211,59 @@ export default function App() {
                 </div>
               </motion.div>
 
-              {/* Action */}
+              {/* Bloc Frigo (Soustrait des courses) */}
+              <motion.div variants={itemVariants} className="brutal-card md:col-span-12 bg-white">
+                <h2 className="font-display uppercase tracking-widest text-sm mb-6 border-b-[3px] border-foreground pb-4">Dans mon frigo (Soustrait des courses)</h2>
+                
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                  <select 
+                    value={tagSelectionne}
+                    onChange={(e) => setTagSelectionne(e.target.value)}
+                    className="brutal-input bg-white flex-1"
+                  >
+                    <option value="">+ Ajouter un ingrédient...</option>
+                    {tagsDisponibles.map(tag => (
+                      <option key={tag} value={tag}>{tag.replace(/_/g, ' ')}</option>
+                    ))}
+                  </select>
+                  <button 
+                    className="brutal-btn py-3 px-6 text-sm"
+                    disabled={!tagSelectionne}
+                    onClick={() => {
+                      vibrate();
+                      handleAjouterFrigo(tagSelectionne);
+                      setTagSelectionne("");
+                    }}
+                  >
+                    Ajouter
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {inventaireFrigo.length === 0 ? (
+                    <p className="text-muted-foreground font-bold italic col-span-full">Ton frigo est vide.</p>
+                  ) : (
+                    inventaireFrigo.map(item => (
+                      <div key={item.tag_ingredient} className="flex items-center justify-between brutal-border p-3 bg-background">
+                        <span className="font-bold capitalize truncate mr-2">{item.tag_ingredient.replace(/_/g, ' ')}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <input 
+                            type="number" 
+                            value={item.quantite_accumulee} 
+                            onChange={(e) => handleUpdateFrigo(item.tag_ingredient, Number(e.target.value))}
+                            className="w-20 brutal-border text-center font-bold bg-white outline-none px-1 py-1"
+                          />
+                          <span className="text-xs font-bold uppercase text-muted-foreground">g/ml</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+
+              {/* Action Génération */}
               <motion.div variants={itemVariants} className="md:col-span-12">
-                <button className="brutal-btn w-full text-2xl py-6 brutal-shadow-hover" onClick={handleGenerateMenuClick} disabled={isLoading}>
+                <button className="brutal-btn w-full text-2xl py-6 brutal-shadow-hover" onClick={handleGenerateMenuClick} disabled={isBusy}>
                   {isLoading ? 'Conception en cours...' : 'Générer l\'Édition'}
                 </button>
               </motion.div>
@@ -185,7 +271,7 @@ export default function App() {
           </motion.div>
         )}
 
-        {/* --- ÉTAPE 2 : MENU --- */}
+        {/* === ÉTAPE 2 : MENU === */}
         {currentStep === 2 && (
           <motion.div key="step2" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="flex-1">
             
@@ -194,8 +280,8 @@ export default function App() {
                 <h2 className="text-4xl font-black uppercase">Sélection</h2>
                 <p className="font-bold text-muted-foreground mt-2">Estimation : {totalCost.toFixed(2)} €</p>
               </div>
-              <button className="brutal-btn mt-6 md:mt-0" onClick={() => { vibrate(); setCurrentStep(3); }}>
-                Liste de Courses
+              <button className="brutal-btn mt-6 md:mt-0" onClick={handleGenerateListClick} disabled={isBusy}>
+                {isGeneratingShoppingList ? 'Génération...' : 'Liste de Courses'}
               </button>
             </div>
 
@@ -221,13 +307,97 @@ export default function App() {
             </div>
           </motion.div>
         )}
+
+        {/* === ÉTAPE 3 : COURSES === */}
+        {currentStep === 3 && shoppingList && (
+          <motion.div key="step3" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="flex-1">
+            <div className="flex items-end justify-between mb-12 border-b-[3px] border-foreground pb-6">
+              <h2 className="text-4xl font-black uppercase">Liste de Courses</h2>
+            </div>
+            
+            <div className="space-y-12">
+              {Object.entries(shoppingList).map(([rayon, items]) => (
+                <motion.div key={rayon} variants={itemVariants} className="brutal-card bg-white p-0">
+                  <div className="bg-primary border-b-[3px] border-foreground px-6 py-4">
+                    <h3 className="font-display font-bold uppercase tracking-widest text-lg">{rayon}</h3>
+                  </div>
+                  <div className="divide-y-[3px] divide-foreground">
+                    {items.map((item) => {
+                      const isChecked = checkedItems[item.id] || false;
+                      return (
+                        <div 
+                          key={item.id} 
+                          className={`flex items-center gap-4 p-4 cursor-pointer transition-colors ${isChecked ? 'bg-muted' : 'hover:bg-background'}`}
+                          onClick={() => { vibrate(); toggleCheck(item.id); }}
+                        >
+                          <div className={`w-8 h-8 brutal-border flex items-center justify-center shrink-0 transition-colors ${isChecked ? 'bg-foreground text-background' : 'bg-white'}`}>
+                            {isChecked && <Check size={20} strokeWidth={4} />}
+                          </div>
+                          <div className="flex-1">
+                            <div className={`font-bold text-lg leading-none ${isChecked ? 'line-through opacity-50' : ''}`}>{item.nom}</div>
+                            <div className={`font-bold text-sm text-muted-foreground mt-1 uppercase ${isChecked ? 'opacity-50' : ''}`}>{formatQuantity(item.tag, item.quantite)}</div>
+                          </div>
+                          <div className={`text-3xl ${isChecked ? 'opacity-30' : ''}`}>{getEmojiForTag(item.tag)}</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* --- MODALE RECETTE --- */}
+      <AnimatePresence>
+        {selectedRecipe && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+            onClick={() => setSelectedRecipe(null)}
+          >
+            <motion.div 
+              initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}
+              className="brutal-card bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto p-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 right-0 flex justify-end p-4 z-20 pointer-events-none">
+                <button className="w-12 h-12 bg-primary brutal-border brutal-shadow flex items-center justify-center cursor-pointer pointer-events-auto active:translate-y-1 active:translate-x-1 active:shadow-none transition-all" onClick={() => setSelectedRecipe(null)}>
+                  <X size={24} strokeWidth={3} />
+                </button>
+              </div>
+              
+              <div className="px-8 pb-8 -mt-8">
+                <h2 className="text-4xl md:text-5xl font-black uppercase mb-2 leading-none mt-4">{selectedRecipe.nom}</h2>
+                <p className="font-display font-bold uppercase tracking-widest text-primary mb-8 border-b-[3px] border-foreground pb-4">
+                  Pour {portions} personne(s) • {selectedRecipe.temps_prep} min
+                </p>
+
+                <h3 className="text-xl font-black uppercase mb-4 bg-muted inline-block px-3 py-1 brutal-border">Ingrédients</h3>
+                <div className="flex flex-wrap gap-2 mb-8">
+                  {selectedRecipe.ingredients?.map((ing, i) => (
+                    <span key={i} className="bg-white brutal-border px-3 py-2 text-sm font-bold uppercase">
+                      {ing.besoin_grammes * portions}g {ing.tag.replace(/_/g, ' ')}
+                    </span>
+                  ))}
+                </div>
+
+                <h3 className="text-xl font-black uppercase mb-4 bg-muted inline-block px-3 py-1 brutal-border">Préparation</h3>
+                <p className="font-sans font-bold text-foreground/90 leading-relaxed whitespace-pre-wrap text-lg">
+                  {selectedRecipe.instructions}
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* --- NAVIGATION MOBILE FIXE --- */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background border-t-[3px] border-foreground p-4 flex justify-between">
         <button onClick={() => { vibrate(); setCurrentStep(1); }} className={`flex-1 flex flex-col items-center gap-1 font-bold ${currentStep === 1 ? 'text-primary' : 'text-foreground'}`}><Settings2 size={24} />Config</button>
-        <button onClick={() => { vibrate(); setCurrentStep(2); }} className={`flex-1 flex flex-col items-center gap-1 font-bold border-l-[3px] border-foreground ${currentStep === 2 ? 'text-primary' : 'text-foreground'}`}><ChefHat size={24} />Menu</button>
-        <button onClick={() => { vibrate(); setCurrentStep(3); }} className={`flex-1 flex flex-col items-center gap-1 font-bold border-l-[3px] border-foreground ${currentStep === 3 ? 'text-primary' : 'text-foreground'}`}><ShoppingBag size={24} />Courses</button>
+        <button onClick={() => { vibrate(); setCurrentStep(2); }} className={`flex-1 flex flex-col items-center gap-1 font-bold border-l-[3px] border-foreground ${currentStep === 2 ? 'text-primary' : 'text-foreground'}`} disabled={!menu.length}><ChefHat size={24} />Menu</button>
+        <button onClick={() => { vibrate(); setCurrentStep(3); }} className={`flex-1 flex flex-col items-center gap-1 font-bold border-l-[3px] border-foreground ${currentStep === 3 ? 'text-primary' : 'text-foreground'}`} disabled={!shoppingList}><ShoppingBag size={24} />Courses</button>
       </div>
 
       <Analytics />
