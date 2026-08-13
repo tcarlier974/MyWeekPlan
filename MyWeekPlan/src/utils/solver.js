@@ -1,8 +1,6 @@
 import { supabase } from '../supabase'
 import { normalizePlanningMode, priceMenu, selectAffordableMenu, validatePlanningInput } from './menuCalculations'
 
-// Kept for the reroll function; weekly planning uses priceMenu so its calculation
-// is shared with the shopping-list workflow.
 export function getBestProduct(tag, besoinTotalGrammes, produitsDb) {
   const produitKilo = produitsDb.find(produit => produit.tag_ingredient === tag)
   if (!produitKilo || besoinTotalGrammes <= 0) {
@@ -37,16 +35,38 @@ export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions 
     if (recipesResult.error || productsResult.error || inventoryResult.error) {
       throw new Error('Erreur de chargement des données de planification.')
     }
+    
+    const recipes = recipesResult.data || []
+    const products = productsResult.data || []
+    const inventory = inventoryResult.data || []
 
-    return selectAffordableMenu(
-      recipesResult.data || [],
+    // TENTATIVE 1 : On essaie de respecter le budget strict de l'utilisateur
+    let result = selectAffordableMenu(
+      recipes,
       targetBudget,
       mealsCount,
       portions,
-      productsResult.data || [],
-      inventoryResult.data || [],
-      { mode: normalizePlanningMode(mode) },
+      products,
+      inventory,
+      { mode: normalizePlanningMode(mode) }
     )
+
+    // TENTATIVE 2 (FALLBACK) : Si l'algorithme échoue à cause du budget, on retire la limite !
+    // L'algorithme renverra le menu le plus optimisé possible, même s'il dépasse.
+    // L'interface affichera ce dépassement en rouge.
+    if (!result.success && result.error && result.error.includes('budget')) {
+      result = selectAffordableMenu(
+        recipes,
+        Number.POSITIVE_INFINITY, // Budget infini pour forcer la génération
+        mealsCount,
+        portions,
+        products,
+        inventory,
+        { mode: normalizePlanningMode(mode) }
+      )
+    }
+
+    return result
   } catch (error) {
     console.error(error)
     return planningFailure('Impossible de charger les données de planification.')
@@ -74,11 +94,12 @@ export async function getAlternativeMeal(currentMenu, indexToReplace, targetBudg
     const inventory = inventoryResult.data || []
 
     const menuSansAncien = currentMenu.filter((_, index) => index !== indexToReplace)
-    const coutRestant = menuSansAncien.reduce((sum, repas) => sum + repas.prixCalcule, 0)
+    const coutRestant = menuSansAncien.reduce((sum, repas) => sum + (repas.prixCalcule || 0), 0)
     const budgetDispo = targetBudget - coutRestant
     const currentIds = currentMenu.map(recette => recette.id)
 
-    const candidates = recettesDb
+    // On prépare tous les candidats qui ont tous leurs ingrédients dans la base
+    const allCandidates = recettesDb
       .filter(recette => !currentIds.includes(recette.id))
       .map(recette => {
         const candidateMenu = [...menuSansAncien, recette]
@@ -92,17 +113,25 @@ export async function getAlternativeMeal(currentMenu, indexToReplace, targetBudg
           score: scoreRerollCandidate(normalizePlanningMode(mode), priced.totalCost, duration, priced.missingTags.length),
         }
       })
-      .filter(candidate => candidate.missingTags.length === 0 && candidate.totalCost <= budgetDispo)
+      .filter(candidate => candidate.missingTags.length === 0)
 
-    if (candidates.length === 0) {
-      return { succes: false, erreur: 'Aucune recette de remplacement ne respecte le budget.' }
+    if (allCandidates.length === 0) {
+      return { succes: false, erreur: 'Aucune recette de remplacement (ingrédients manquants en base).' }
     }
 
-    candidates.sort((left, right) => left.score - right.score || left.totalCost - right.totalCost || left.duration - right.duration)
+    // TENTATIVE 1 : On essaie de trouver un candidat qui rentre dans le budget restant
+    let validCandidates = allCandidates.filter(candidate => candidate.totalCost <= budgetDispo)
+
+    // TENTATIVE 2 (FALLBACK) : Si rien ne rentre dans le budget, on prend les recettes au-dessus du budget
+    if (validCandidates.length === 0) {
+      validCandidates = allCandidates
+    }
+
+    validCandidates.sort((left, right) => left.score - right.score || left.totalCost - right.totalCost || left.duration - right.duration)
 
     return {
       succes: true,
-      recette: candidates[0].recette,
+      recette: validCandidates[0].recette,
     }
   } catch (error) {
     console.error(error)
