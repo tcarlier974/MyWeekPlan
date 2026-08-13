@@ -97,13 +97,11 @@ const LandingPage = () => {
           className="flex-1 w-full max-w-xl mx-auto lg:mr-0"
         >
           <div className="brutal-border bg-white p-4 md:p-6 shadow-[12px_12px_0px_0px_rgba(18,18,18,1)] flex flex-col gap-4 aspect-square md:aspect-[4/3] overflow-hidden relative group">
-            {/* Faux Header UI */}
             <div className="flex justify-between items-center border-b-[3px] border-foreground pb-4">
               <div className="w-1/3 h-6 bg-foreground brutal-border"></div>
               <div className="w-12 h-12 bg-primary brutal-border rounded-full flex items-center justify-center font-bold">MWP</div>
             </div>
             
-            {/* Faux Bento UI */}
             <div className="grid grid-cols-2 gap-4 flex-1">
               <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 4 }} className="bg-primary brutal-border p-4 flex flex-col justify-end">
                 <span className="text-4xl font-black">50€</span>
@@ -158,7 +156,7 @@ const LandingPage = () => {
 // 2. COMPOSANT : L'APPLICATION (PLANNER)
 // ==========================================
 const PlannerApp = () => {
-  const navigate = useNavigate(); // Permet de retourner à l'accueil si besoin
+  const navigate = useNavigate();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [budget, setBudget] = useState(50);
@@ -176,15 +174,17 @@ const PlannerApp = () => {
   const [checkedItems, setCheckedItems] = useState({});
   const [lockedMeals, setLockedMeals] = useState({});
   const [selectedRecipe, setSelectedRecipe] = useState(null);
+  
+  // --- NOUVEAU: ÉTAT POUR LE REROLL ---
+  const [rerollingIndex, setRerollingIndex] = useState(null);
 
   const instructionsMap = instructionsData.reduce((acc, item) => {
     acc[item.nom] = item.instructions;
     return acc;
   }, {});
 
-  const isBusy = isLoading || isGeneratingShoppingList;
+  const isBusy = isLoading || isGeneratingShoppingList || rerollingIndex !== null;
 
-  // --- LOGIQUE BASE DE DONNÉES ---
   useEffect(() => {
     async function chargerDonnees() {
       if (!supabase) return;
@@ -218,6 +218,7 @@ const PlannerApp = () => {
   const handleGenerateMenuClick = async () => {
     vibrate();
     setIsLoading(true);
+    setLockedMeals({});
     try {
       const resultat = await generateWeeklyMenu(budget, mealsCount, portions, planningMode);
       if (resultat?.success || resultat?.succes) {
@@ -227,6 +228,27 @@ const PlannerApp = () => {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // --- NOUVEAU: FONCTION DE REROLL ---
+  const handleRerollMeal = async (index) => {
+    if (lockedMeals[index]) return;
+    vibrate();
+    setRerollingIndex(index);
+    try {
+      const resultat = await getAlternativeMeal(menu, index, budget, portions, planningMode);
+      if (resultat.succes) {
+        const nouveauMenu = [...menu];
+        nouveauMenu[index] = {
+          ...resultat.recette,
+          instructions: instructionsMap[resultat.recette.nom] || "Instructions indisponibles."
+        };
+        setMenu(nouveauMenu);
+        setTotalCost(nouveauMenu.reduce((sum, repas) => sum + (repas.prixCalcule || 0), 0));
+      }
+    } finally {
+      setRerollingIndex(null);
     }
   };
 
@@ -245,7 +267,6 @@ const PlannerApp = () => {
     }
   };
 
-  // --- ANIMATIONS ---
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0, transition: { staggerChildren: 0.1 } },
@@ -259,7 +280,7 @@ const PlannerApp = () => {
   return (
     <div className="container mx-auto px-4 max-w-6xl py-8 lg:py-16 flex flex-col min-h-screen">
       
-      {/* --- HEADER ÉDITORIAL --- */}
+      {/* HEADER */}
       <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
           <button onClick={() => navigate('/')} className="font-display font-bold uppercase tracking-[0.3em] text-primary mb-4 text-sm flex items-center gap-2 hover:opacity-70 transition-opacity">
@@ -270,7 +291,6 @@ const PlannerApp = () => {
           </h1>
         </motion.div>
 
-        {/* Navigation Desktop */}
         <div className="hidden md:flex gap-4">
           {[1, 2, 3].map(step => (
             <button key={step} 
@@ -282,15 +302,13 @@ const PlannerApp = () => {
         </div>
       </header>
 
-      {/* --- CONTENU PRINCIPAL --- */}
+      {/* CONTENU PRINCIPAL */}
       <AnimatePresence mode="wait">
         
-        {/* === ÉTAPE 1 : CONFIGURATION === */}
         {currentStep === 1 && (
           <motion.div key="step1" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="flex-1 pb-24 md:pb-0 relative z-10">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8">
               
-              {/* Grand Bloc Budget */}
               <motion.div variants={itemVariants} className="brutal-card md:col-span-8 bg-white">
                 <h2 className="font-display uppercase tracking-widest text-sm text-muted-foreground mb-8">Définition des ressources</h2>
                 <div className="flex flex-col md:flex-row md:items-end gap-4 mt-auto">
@@ -302,10 +320,8 @@ const PlannerApp = () => {
                 </div>
               </motion.div>
 
-              {/* Bloc Paramètres */}
               <motion.div variants={itemVariants} className="brutal-card md:col-span-4 bg-primary text-primary-foreground">
                 <h2 className="font-display uppercase tracking-widest text-sm mb-6 border-b-[3px] border-foreground pb-4">Variables</h2>
-                
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
                     <span className="font-bold uppercase">Repas</span>
@@ -315,7 +331,6 @@ const PlannerApp = () => {
                       <button onClick={() => { vibrate(); setMealsCount(Math.min(14, mealsCount + 1)); }} className="px-3 py-1 hover:bg-muted font-bold">+</button>
                     </div>
                   </div>
-
                   <div className="flex justify-between items-center">
                     <span className="font-bold uppercase">Portions</span>
                     <div className="flex items-center brutal-border bg-white text-foreground">
@@ -327,7 +342,6 @@ const PlannerApp = () => {
                 </div>
               </motion.div>
 
-              {/* Bloc Frigo */}
               <motion.div variants={itemVariants} className="brutal-card md:col-span-12 bg-white">
                 <h2 className="font-display uppercase tracking-widest text-sm mb-6 border-b-[3px] border-foreground pb-4">Dans mon frigo (Soustrait des courses)</h2>
                 
@@ -377,7 +391,6 @@ const PlannerApp = () => {
                 </div>
               </motion.div>
 
-              {/* Action Génération */}
               <motion.div variants={itemVariants} className="md:col-span-12 relative z-20">
                 <button className="brutal-btn w-full text-2xl py-6 brutal-shadow-hover" onClick={handleGenerateMenuClick} disabled={isBusy}>
                   {isLoading ? 'Conception en cours...' : 'Générer l\'Édition'}
@@ -387,7 +400,6 @@ const PlannerApp = () => {
           </motion.div>
         )}
 
-        {/* === ÉTAPE 2 : MENU === */}
         {currentStep === 2 && (
           <motion.div key="step2" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="flex-1 pb-24 md:pb-0 relative z-10">
             
@@ -405,10 +417,22 @@ const PlannerApp = () => {
               {menu.map((repas, index) => (
                 <motion.div key={index} variants={itemVariants} whileHover={{ y: -5 }} className="brutal-card bg-white cursor-pointer group relative z-20" onClick={() => { vibrate(); setSelectedRecipe(repas); }}>
                   <div className="absolute top-4 right-4 z-30 flex gap-2">
+                    
+                    {/* BOUTON REROLL */}
+                    <button 
+                      className={`w-10 h-10 bg-white brutal-border flex items-center justify-center hover:bg-primary transition-colors ${rerollingIndex === index ? 'animate-spin' : ''}`}
+                      onClick={(e) => { e.stopPropagation(); handleRerollMeal(index); }}
+                      disabled={isBusy || lockedMeals[index]}
+                    >
+                      <RefreshCw size={18} strokeWidth={3} />
+                    </button>
+                    
+                    {/* BOUTON LOCK */}
                     <button className="w-10 h-10 bg-white brutal-border flex items-center justify-center hover:bg-primary transition-colors"
                       onClick={(e) => { e.stopPropagation(); vibrate(); setLockedMeals(prev => ({ ...prev, [index]: !prev[index] })); }}>
                       {lockedMeals[index] ? <Lock size={18} strokeWidth={3} /> : <Unlock size={18} strokeWidth={3} />}
                     </button>
+
                   </div>
                   
                   <HaloImage url={repas.image_url} tag={repas.ingredients?.[0]?.tag} nom={repas.nom} />
@@ -424,7 +448,6 @@ const PlannerApp = () => {
           </motion.div>
         )}
 
-        {/* === ÉTAPE 3 : COURSES === */}
         {currentStep === 3 && shoppingList && (
           <motion.div key="step3" variants={pageVariants} initial="initial" animate="animate" exit="exit" className="flex-1 pb-24 md:pb-0 relative z-10">
             <div className="flex items-end justify-between mb-12 border-b-[3px] border-foreground pb-6">
@@ -465,7 +488,6 @@ const PlannerApp = () => {
         )}
       </AnimatePresence>
 
-      {/* --- MODALE RECETTE --- */}
       <AnimatePresence>
         {selectedRecipe && (
           <motion.div 
@@ -509,7 +531,6 @@ const PlannerApp = () => {
         )}
       </AnimatePresence>
 
-      {/* --- NAVIGATION MOBILE FIXE (APP) --- */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t-[3px] border-foreground p-4 flex justify-between">
         <button onClick={() => { vibrate(); setCurrentStep(1); }} className={`flex-1 flex flex-col items-center gap-1 font-bold ${currentStep === 1 ? 'text-primary' : 'text-foreground'}`}><Settings2 size={24} />Config</button>
         <button onClick={() => { vibrate(); setCurrentStep(2); }} className={`flex-1 flex flex-col items-center gap-1 font-bold border-l-[3px] border-foreground ${currentStep === 2 ? 'text-primary' : 'text-foreground'}`} disabled={!menu.length}><ChefHat size={24} />Menu</button>
