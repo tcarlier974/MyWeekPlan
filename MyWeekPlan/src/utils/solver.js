@@ -1,6 +1,16 @@
 import { supabase } from '../supabase'
 import { normalizePlanningMode, priceMenu, selectAffordableMenu, validatePlanningInput } from './menuCalculations'
 
+// Fonction de mélange absolu (Fisher-Yates) pour garantir le vrai aléatoire
+function shuffleArray(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+}
+
 export function getBestProduct(tag, besoinTotalGrammes, produitsDb) {
   const produitKilo = produitsDb.find(produit => produit.tag_ingredient === tag)
   if (!produitKilo || besoinTotalGrammes <= 0) {
@@ -36,10 +46,9 @@ export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions 
       throw new Error('Erreur de chargement des données de planification.')
     }
     
-    // Ajout d'aléatoire : on mélange les recettes avant de les traiter
-    // pour ne pas toujours avoir la même semaine générée à budget égal
+    // Vrai aléatoire : on mélange totalement les recettes avant de générer la semaine
     let recipes = recipesResult.data || []
-    recipes = recipes.sort(() => Math.random() - 0.5)
+    recipes = shuffleArray(recipes)
 
     const products = productsResult.data || []
     const inventory = inventoryResult.data || []
@@ -104,18 +113,15 @@ export async function getAlternativeMeal(currentMenu, indexToReplace, targetBudg
       .map(recette => {
         const candidateMenu = [...menuSansAncien, recette]
         const priced = priceMenu(candidateMenu, portions, produitsDb, inventory)
-        const duration = candidateMenu.reduce((sum, item) => sum + (Number.isFinite(item.temps_prep) ? item.temps_prep : 0), 0)
         
-        // CORRECTION DU PRIX : On va chercher le prix isolé de CE plat dans le menu évalué
+        // PRIX ISOLÉ DE LA NOUVELLE RECETTE
         const pricedCandidate = priced.meals.find(m => m.id === recette.id)
         const coutDeCetteRecetteSeule = pricedCandidate ? pricedCandidate.prixCalcule : 0
 
         return {
           recette: { ...recette, prixCalcule: coutDeCetteRecetteSeule },
           totalCost: priced.totalCost,
-          missingTags: priced.missingTags,
-          duration,
-          score: scoreRerollCandidate(normalizePlanningMode(mode), priced.totalCost, duration, priced.missingTags.length),
+          missingTags: priced.missingTags
         }
       })
       .filter(candidate => candidate.missingTags.length === 0)
@@ -124,22 +130,21 @@ export async function getAlternativeMeal(currentMenu, indexToReplace, targetBudg
       return { succes: false, erreur: 'Aucune recette de remplacement (ingrédients manquants en base).' }
     }
 
+    // TENTATIVE 1 : On filtre pour ne garder QUE celles qui respectent le budget restant
     let validCandidates = allCandidates.filter(candidate => candidate.totalCost <= budgetDispo)
 
+    // TENTATIVE 2 : S'il n'y a rien dans le budget, on prend toutes les recettes possibles (dépassement)
     if (validCandidates.length === 0) {
       validCandidates = allCandidates
     }
 
-    // On trie du meilleur candidat au moins bon
-    validCandidates.sort((left, right) => left.score - right.score || left.totalCost - right.totalCost || left.duration - right.duration)
+    // ANTI PING-PONG : On mélange TOTALEMENT les candidats valides
+    validCandidates = shuffleArray(validCandidates)
 
-    // CORRECTION DE L'ALÉATOIRE : On pioche au hasard parmi le Top 5 des meilleures recettes
-    const topN = Math.min(5, validCandidates.length)
-    const randomIndex = Math.floor(Math.random() * topN)
-
+    // On prend simplement le premier du tableau mélangé !
     return {
       succes: true,
-      recette: validCandidates[randomIndex].recette,
+      recette: validCandidates[0].recette,
     }
   } catch (error) {
     console.error(error)
@@ -149,18 +154,4 @@ export async function getAlternativeMeal(currentMenu, indexToReplace, targetBudg
 
 function planningFailure(error) {
   return { success: false, menu: [], totalCost: 0, error }
-}
-
-function scoreRerollCandidate(mode, totalCost, duration, missingTagsCount) {
-  switch (mode) {
-    case 'economic':
-      return totalCost * 1000 + duration * 10 + missingTagsCount * 10000
-    case 'quick':
-      return duration * 1000 + totalCost * 10 + missingTagsCount * 10000
-    case 'anti-gaspi':
-      return missingTagsCount * 100000 + totalCost * 100 + duration
-    case 'balanced':
-    default:
-      return totalCost * 500 + duration * 50 + missingTagsCount * 10000
-  }
 }
