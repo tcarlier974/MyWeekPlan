@@ -84,6 +84,7 @@ export async function generateWeeklyMenu(targetBudget, mealsCount = 7, portions 
 }
 
 export async function getAlternativeMeal(currentMenu, indexToReplace, targetBudget, portions = 1, mode = 'balanced') {
+  void mode
   if (!supabase) {
     return { succes: false, erreur: 'Supabase n’est pas configuré.' }
   }

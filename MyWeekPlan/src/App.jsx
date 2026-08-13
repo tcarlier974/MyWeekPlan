@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Settings2, ChefHat, ShoppingBag, Plus, RefreshCw, Lock, Unlock, X, Check, ArrowRight, Sparkles, Refrigerator, ListCheck } from 'lucide-react'
+import { Settings2, ChefHat, ShoppingBag, RefreshCw, Lock, Unlock, X, Check, ArrowRight, Sparkles, Refrigerator, ListCheck, UserRound } from 'lucide-react'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { generateWeeklyMenu, getAlternativeMeal } from './utils/solver'
 import { generateShoppingList } from './utils/shoppingList'
 import { supabase } from './supabase'
+import { AuthProvider } from './auth/AuthContext.jsx'
+import { useAuth } from './auth/authContext'
+import AccountPanel from './components/AccountPanel'
+import { clearTrialState, hasTrialData, readTrialState, writeTrialState } from './lib/authUi'
+import { loadPlannerState, saveInventory, savePlannerState } from './lib/plannerPersistence'
 import instructionsData from '../instructions_completes_a_ajouter.json'
 import './App.css'
 
@@ -48,8 +53,9 @@ const HaloImage = ({ url, tag, nom }) => (
 // ==========================================
 // 1. COMPOSANT : LANDING PAGE (VITRINE)
 // ==========================================
-const LandingPage = () => {
+const LandingPage = ({ onOpenAccount }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleStart = () => {
     vibrate();
@@ -62,9 +68,14 @@ const LandingPage = () => {
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b-[3px] border-foreground">
         <div className="container mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
           <span className="font-display font-black text-2xl uppercase tracking-tighter">MyWeekPlan.</span>
-          <button onClick={handleStart} className="hidden md:flex items-center gap-2 font-bold uppercase tracking-widest text-sm hover:text-primary transition-colors">
-            L'App <ArrowRight size={18} strokeWidth={3} />
-          </button>
+          <div className="flex items-center gap-5">
+            <button onClick={onOpenAccount} className="flex items-center gap-2 font-bold uppercase tracking-widest text-sm hover:text-primary transition-colors">
+              <UserRound size={18} strokeWidth={3} /> {user ? 'Profil' : 'Connexion'}
+            </button>
+            <button onClick={handleStart} className="hidden md:flex items-center gap-2 font-bold uppercase tracking-widest text-sm hover:text-primary transition-colors">
+              L'App <ArrowRight size={18} strokeWidth={3} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -155,8 +166,9 @@ const LandingPage = () => {
 // ==========================================
 // 2. COMPOSANT : L'APPLICATION (PLANNER)
 // ==========================================
-const PlannerApp = () => {
+const PlannerApp = ({ onOpenAccount }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [budget, setBudget] = useState(50);
@@ -174,6 +186,8 @@ const PlannerApp = () => {
   const [checkedItems, setCheckedItems] = useState({});
   const [lockedMeals, setLockedMeals] = useState({});
   const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [isPlannerStateReady, setIsPlannerStateReady] = useState(false);
+  const [restoredIdentity, setRestoredIdentity] = useState(null);
   
   // --- NOUVEAU: ÉTAT POUR LE REROLL ---
   const [rerollingIndex, setRerollingIndex] = useState(null);
@@ -186,29 +200,79 @@ const PlannerApp = () => {
   const isBusy = isLoading || isGeneratingShoppingList || rerollingIndex !== null;
 
   useEffect(() => {
-    async function chargerDonnees() {
+    async function chargerCatalogue() {
       if (!supabase) return;
       try {
-        const { data: frigoData } = await supabase.from('inventaire_frigo').select('*');
-        if (frigoData) setInventaireFrigo(frigoData);
         const { data: produitsData } = await supabase.from('produits_magasin').select('tag_ingredient');
         if (produitsData) setTagsDisponibles([...new Set(produitsData.map(p => p.tag_ingredient))].sort());
-      } catch (err) {}
+      } catch {
+        // Le catalogue peut être indisponible sans bloquer le mode essai.
+      }
     }
-    chargerDonnees();
+    chargerCatalogue();
   }, []);
+
+  useEffect(() => {
+    let isCurrent = true;
+    async function restoreState() {
+      try {
+        const data = user && supabase
+          ? await loadPlannerState(supabase, user.id)
+          : readTrialState();
+        if (!data || !isCurrent) return;
+        setBudget(data.budget ?? 50);
+        setMealsCount(data.mealsCount ?? 7);
+        setPortions(data.portions ?? 2);
+        setPlanningMode(data.planningMode ?? 'balanced');
+        setInventaireFrigo(data.inventaireFrigo ?? []);
+        setMenu(data.menu ?? []);
+        setTotalCost(data.totalCost ?? 0);
+        setShoppingList(data.shoppingList ?? null);
+        setCheckedItems(data.checkedItems ?? {});
+        setLockedMeals(data.lockedMeals ?? {});
+      } catch (error) {
+        console.error('Impossible de restaurer le plan', error);
+      } finally {
+        if (isCurrent) {
+          setRestoredIdentity(user?.id ?? 'trial');
+          setIsPlannerStateReady(true);
+        }
+      }
+    }
+    restoreState();
+    return () => { isCurrent = false; };
+  }, [user]);
+
+  useEffect(() => {
+    const identity = user?.id ?? 'trial';
+    if (!isPlannerStateReady || restoredIdentity !== identity) return undefined;
+    const snapshot = { budget, mealsCount, portions, planningMode, inventaireFrigo, menu, totalCost, shoppingList, checkedItems, lockedMeals };
+    const timeout = window.setTimeout(async () => {
+      try {
+        if (user && supabase) {
+          await Promise.all([
+            saveInventory(supabase, user.id, inventaireFrigo),
+            savePlannerState(supabase, user.id, snapshot),
+          ]);
+        } else {
+          writeTrialState(snapshot);
+        }
+      } catch (error) {
+        console.error('Impossible de sauvegarder le plan', error);
+      }
+    }, 350);
+    return () => window.clearTimeout(timeout);
+  }, [isPlannerStateReady, restoredIdentity, user, budget, mealsCount, portions, planningMode, inventaireFrigo, menu, totalCost, shoppingList, checkedItems, lockedMeals]);
 
   const handleUpdateFrigo = async (tag, quantite) => {
     const safeQ = Math.max(0, quantite);
     setInventaireFrigo(prev => prev.map(item => item.tag_ingredient === tag ? { ...item, quantite_accumulee: safeQ } : item));
-    if (supabase) await supabase.from('inventaire_frigo').upsert({ tag_ingredient: tag, quantite_accumulee: safeQ }, { onConflict: 'tag_ingredient' });
   };
 
   const handleAjouterFrigo = async (tag) => {
     if (!tag || inventaireFrigo.some(item => item.tag_ingredient === tag)) return;
     const nouvelItem = { tag_ingredient: tag, quantite_accumulee: 0 };
     setInventaireFrigo(prev => [...prev, nouvelItem]);
-    if (supabase) await supabase.from('inventaire_frigo').insert([nouvelItem]);
   };
 
   const toggleCheck = (itemId) => {
@@ -291,7 +355,8 @@ const PlannerApp = () => {
           </h1>
         </motion.div>
 
-        <div className="hidden md:flex gap-4">
+        <div className="hidden md:flex gap-4 items-center">
+          <button onClick={onOpenAccount} className="w-14 h-14 brutal-border bg-white flex items-center justify-center hover:bg-primary" aria-label={user ? 'Ouvrir mon profil' : 'Se connecter'}><UserRound size={22} strokeWidth={3} /></button>
           {[1, 2, 3].map(step => (
             <button key={step} 
               onClick={() => { vibrate(); setCurrentStep(step); }}
@@ -544,16 +609,79 @@ const PlannerApp = () => {
 };
 
 
-// ==========================================
-// 3. COMPOSANT RACINE : LE ROUTEUR (APP MAIN)
-// ==========================================
+function TrialTransferPrompt({ onKeep, onDiscard }) {
+  return (
+    <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 bg-foreground/45 backdrop-blur-sm">
+      <div className="brutal-card bg-white w-full max-w-lg">
+        <p className="font-display font-bold uppercase tracking-[0.25em] text-primary text-sm">Mode essai</p>
+        <h2 className="text-4xl font-black uppercase leading-none mt-4">Garder cette semaine&nbsp;?</h2>
+        <p className="font-bold text-muted-foreground mt-5 leading-relaxed">Ton frigo, ton menu et ta liste de courses sont encore sur cet appareil. Veux-tu les enregistrer dans ton compte Google&nbsp;?</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+          <button className="brutal-btn py-4" onClick={onKeep}>Enregistrer</button>
+          <button className="brutal-btn py-4 bg-white text-foreground hover:bg-muted" onClick={onDiscard}>Repartir à zéro</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function AppShell() {
+  const { user, isAuthLoading, signInWithGoogle, signOut } = useAuth()
+  const [isAccountOpen, setIsAccountOpen] = useState(false)
+  const isTrialTransferOpen = Boolean(user && hasTrialData(readTrialState()))
+
+  const transferTrial = async () => {
+    const trial = readTrialState()
+    if (user && supabase && trial) {
+      await Promise.all([
+        saveInventory(supabase, user.id, trial.inventaireFrigo || []),
+        savePlannerState(supabase, user.id, {
+          budget: trial.budget ?? 50,
+          mealsCount: trial.mealsCount ?? 7,
+          portions: trial.portions ?? 2,
+          planningMode: trial.planningMode ?? 'balanced',
+          menu: trial.menu || [],
+          totalCost: trial.totalCost ?? 0,
+          lockedMeals: trial.lockedMeals || {},
+          shoppingList: trial.shoppingList || null,
+          checkedItems: trial.checkedItems || {},
+        }),
+      ])
+    }
+    clearTrialState()
+    window.location.assign('/app')
+  }
+
+  const discardTrial = () => {
+    clearTrialState()
+    window.location.assign('/app')
+  }
+
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<LandingPage onOpenAccount={() => setIsAccountOpen(true)} />} />
+        <Route path="/app" element={<PlannerApp onOpenAccount={() => setIsAccountOpen(true)} />} />
+      </Routes>
+      <AccountPanel
+        isOpen={isAccountOpen}
+        onClose={() => setIsAccountOpen(false)}
+        user={user}
+        isAuthLoading={isAuthLoading}
+        onSignIn={signInWithGoogle}
+        onSignOut={async () => { await signOut(); setIsAccountOpen(false); }}
+      />
+      {isTrialTransferOpen && <TrialTransferPrompt onKeep={transferTrial} onDiscard={discardTrial} />}
+    </>
+  )
+}
+
 export default function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/app" element={<PlannerApp />} />
-      </Routes>
-    </Router>
-  );
+    <AuthProvider>
+      <Router>
+        <AppShell />
+      </Router>
+    </AuthProvider>
+  )
 }
