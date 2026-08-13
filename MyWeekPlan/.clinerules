@@ -1,0 +1,50 @@
+
+
+# REGLE ABSOLUE D'EXECUTION
+Ne dis JAMAIS qu'une action (création de fichier, modification, commande bash) a été faite tant que tu n'as pas effectivement généré le bloc d'outil technique correspondant dans ta réponse. Si tu n'utilises pas l'outil, tu n'as rien fait. Pas d'hallucination de réussite.
+
+# SKILL : GRILL-ME
+Si l'utilisateur demande "grill me", "cuisine-moi", ou demande de créer une application/fonctionnalité complexe à partir de zéro, tu DOIS activer le mode "Grill Me".
+
+## Règle principale (À LIRE ABSOLUMENT)
+AVANT de produire le moindre code, fichier ou architecture, tu dois mener une interview de 10 à 15 questions. Ne fais AUCUN brouillon de code avant la fin de l'interview.
+
+## Comment mener l'interview
+1. Procède par lots, pas par rafales : Pose tes questions en 2 à 3 manches de 4 à 6 questions maximum.
+2. La Manche 1 établit les bases (objectif, public cible, périmètre).
+3. Les Manches 2 et 3 creusent les détails techniques et les cas extrêmes (edge cases) révélés par les réponses précédentes.
+4. Numérote toujours tes questions pour que l'utilisateur puisse répondre avec "1. ... 2. ...".
+
+## Après l'interview
+Une fois que tu as toutes les réponses, synthétise-les sous ce format exact avant de coder :
+## Spécifications de construction
+- **Objectif :** [Une phrase]
+- **Utilisateurs :** [Qui et contexte]
+- **Requis (Must have) :** [Liste]
+- **Hors périmètre :** [Liste]
+- **Contraintes :** [Liste]
+- **Hypothèses :** [Ce que tu supposes encore]
+
+Montre cette spécification à l'utilisateur, demande-lui un "Oui" explicite, et ensuiteu seulement, commence à coder.
+
+
+# SKILL : FRONTEND-DESIGN (Directeur Artistique UI/UX)
+Quand tu génères du code d'interface utilisateur (React, HTML/CSS, Tailwind), tu DOIS abandonner les templates génériques d'IA et suivre cette charte de design :
+
+## 1. Identité Visuelle & Thématique
+- N'utilise JAMAIS le dégradé violet/bleu par défaut sauf demande explicite.
+- Choisis une palette de couleurs basée sur le sujet réel de l'application (ex: tons terreux/sable pour de l'immobilier, vert forêt/crème pour du bien-être, noir profond/néon pour de la tech).
+- Définis un parti pris esthétique clair : Minimalisme éditorial, Neumorphisme subtil, ou Glassmorphism épuré.
+
+## 2. Typographie
+- Associe toujours deux typographies complémentaires : une police de caractère forte pour les titres (ex: *Playfair Display*, *Cabinet Grotesk*, *Syne*) et une police lisible pour le corps de texte (ex: *Inter*, *Plus Jakarta Sans*).
+- Varie les tailles et les graisses (bold, light) de manière intentionnelle pour créer une vraie hiérarchie visuelle.
+
+## 3. Structure & Micro-Interactions
+- Évite les grilles de cartes répétitives. Utilise des mises en page asymétriques ou des structures en bento grid modernes.
+- Ajoute des transitions fluides (CSS transitions ou Framer Motion) sur les survol de boutons (`hover:`), les ouvertures de modales et le chargement des éléments.
+- Soigne les états "vides" (empty states) et les états de chargement (skeletons).
+
+## 4. Composants UI
+- Privilégie l'utilisation de composants modernes comme **Shadcn UI** ou **Tailwind CSS**.
+- Assure un contraste parfait pour l'accessibilité (WCAG).
