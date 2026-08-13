@@ -5,6 +5,7 @@ import { generateWeeklyMenu, getAlternativeMeal } from './utils/solver'
 import { generateShoppingList } from './utils/shoppingList'
 import { supabase } from './supabase'
 import { getRequiredQuantities, subtractInventory } from './utils/menuCalculations'
+import instructionsData from './instructions_completes_a_ajouter.json'
 import './App.css'
 
 // Attribue un émoji selon le tag
@@ -28,6 +29,11 @@ const getBackgroundClass = (tag) => {
   return 'bg-default';
 };
 
+// Composant pour l'effet de "skeleton" pendant le chargement
+const Skeleton = ({ width, height, className = '' }) => (
+  <div className={`skeleton ${className}`} style={{ width, height, borderRadius: 'var(--rounded-md)' }}></div>
+);
+
 // Formate l'affichage (g/kg ou ml/L) selon le tag de l'ingrédient
 const formatQuantity = (tag, quantite) => {
   const liquides = ['lait', 'creme', 'lait_de_coco', 'huile_olive', 'sauce_teriyaki'];
@@ -43,6 +49,33 @@ const formatQuantity = (tag, quantite) => {
   return `${quantite} ${isLiquid ? 'ml' : 'g'}`;
 };
 
+const MealItemSkeleton = () => (
+  <div className="meal-item" style={{ pointerEvents: 'none' }}>
+    <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+      <Skeleton width={60} height={60} className="meal-image" />
+      <div className="meal-item-left">
+        <Skeleton width="70%" height={20} />
+        <Skeleton width="40%" height={16} style={{ marginTop: '8px' }} />
+      </div>
+    </div>
+    <div className="meal-price-container">
+      <Skeleton width={50} height={24} />
+    </div>
+  </div>
+);
+
+const ShoppingListSkeleton = () => (
+  <div className="shopping-category">
+    <Skeleton width="30%" height={24} style={{ marginBottom: '16px' }} />
+    <div className="shopping-card">
+      {[...Array(3)].map((_, i) => (
+        <Skeleton key={i} width="100%" height={60} style={{ marginBottom: '8px' }} />
+      ))}
+    </div>
+  </div>
+);
+
+
 const SectionFrigo = ({ inventaireFrigo, tagsDisponibles, onUpdateQuantite, onAjouterItem }) => {
   // Petit state local juste pour gérer le menu déroulant
   const [tagSelectionne, setTagSelectionne] = useState("");
@@ -53,18 +86,18 @@ const SectionFrigo = ({ inventaireFrigo, tagsDisponibles, onUpdateQuantite, onAj
   };
 
   return (
-    <div className="frigo-container" style={{ marginTop: '32px', background: '#F9FAFB', padding: '20px', borderRadius: '16px' }}>
-      <h3 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>🥶 Dans mon frigo</h3>
-      <p style={{ color: '#6B7280', fontSize: '0.85rem', marginBottom: '16px' }}>
+    <div className="mt-8 rounded-xl border bg-card text-card-foreground p-6">
+      <h3 className="text-lg font-semibold leading-none tracking-tight mb-2">🥶 Dans mon frigo</h3>
+      <p className="text-sm text-muted-foreground mb-4">
         Ajoute tes restes. L'algorithme les déduira de tes courses et adaptera tes repas !
       </p>
       
       {/* --- BARRE D'AJOUT --- */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+      <div className="flex gap-2 mb-5">
         <select 
           value={tagSelectionne} 
           onChange={(e) => setTagSelectionne(e.target.value)}
-          style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #E5E7EB' }}
+          className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <option value="">+ Ajouter un ingrédient...</option>
           {tagsDisponibles.map(tag => (
@@ -74,7 +107,7 @@ const SectionFrigo = ({ inventaireFrigo, tagsDisponibles, onUpdateQuantite, onAj
         <button 
           onClick={gererAjout}
           disabled={!tagSelectionne}
-          style={{ padding: '10px 16px', background: tagSelectionne ? '#3B82F6' : '#D1D5DB', color: 'white', border: 'none', borderRadius: '8px', cursor: tagSelectionne ? 'pointer' : 'not-allowed', fontWeight: 'bold' }}
+          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
         >
           Ajouter
         </button>
@@ -82,24 +115,24 @@ const SectionFrigo = ({ inventaireFrigo, tagsDisponibles, onUpdateQuantite, onAj
 
       {/* --- LISTE DES INGRÉDIENTS --- */}
       {inventaireFrigo.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '10px', color: '#9CA3AF', fontStyle: 'italic' }}>
+        <div className="text-center p-4 text-muted-foreground italic text-sm">
           Ton frigo est vide pour le moment.
         </div>
       ) : (
-        <div style={{ display: 'grid', gap: '12px' }}>
+        <div className="grid gap-3">
           {inventaireFrigo.map(item => (
-            <div key={item.tag_ingredient} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'white', padding: '12px 16px', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-              <span style={{ fontWeight: '600', textTransform: 'capitalize' }}>
+            <div key={item.tag_ingredient} className="flex items-center justify-between bg-background p-3 rounded-lg border">
+              <span className="font-semibold capitalize text-sm">
                 {item.tag_ingredient.replace(/_/g, ' ')}
               </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="flex items-center gap-2">
                 <input 
                   type="number" 
                   value={item.quantite_accumulee} 
                   onChange={(e) => onUpdateQuantite(item.tag_ingredient, Number(e.target.value))}
-                  style={{ width: '80px', padding: '6px', border: '1px solid #E5E7EB', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}
+                  className="h-9 w-20 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 text-center font-bold"
                 />
-                <span style={{ color: '#9CA3AF', fontSize: '0.9rem' }}>g / ml</span>
+                <span className="text-muted-foreground text-sm">g / ml</span>
               </div>
             </div>
           ))}
@@ -158,6 +191,12 @@ function App() {
   const costPerDay = menu.length > 0 ? totalCost / menu.length : 0
   const costPerPortion = menu.length > 0 && portions > 0 ? totalCost / (menu.length * portions) : 0
   
+  // Créons un dictionnaire pour un accès rapide aux instructions par nom de recette
+  const instructionsMap = instructionsData.reduce((acc, item) => {
+    acc[item.nom] = item.instructions;
+    return acc;
+  }, {});
+
   const handleGenerateMenuClick = async () => {
     setIsLoading(true)
     setErrorMsg('')
@@ -177,7 +216,13 @@ function App() {
         return
       }
 
-      setMenu(Array.isArray(resultat.menu) ? resultat.menu : [])
+      // On enrichit le menu avec les instructions
+      const menuEnrichi = (resultat.menu || []).map(repas => ({
+        ...repas,
+        instructions: instructionsMap[repas.nom] || "Les instructions de préparation ne sont pas encore disponibles pour cette recette."
+      }));
+
+      setMenu(Array.isArray(menuEnrichi) ? menuEnrichi : [])
       setTotalCost(Number.isFinite(resultat.totalCost) ? resultat.totalCost : (resultat.coutTotal || 0))
       setCurrentStep(2)
     } catch (error) {
@@ -209,7 +254,11 @@ function App() {
     
     if (resultat.succes) {
       const nouveauMenu = [...menu]
-      nouveauMenu[index] = resultat.recette 
+      // On enrichit aussi la nouvelle recette avec ses instructions
+      nouveauMenu[index] = {
+        ...resultat.recette,
+        instructions: instructionsMap[resultat.recette.nom] || "Les instructions de préparation ne sont pas encore disponibles pour cette recette."
+      };
       setMenu(nouveauMenu)
       
       const nouveauPrix = nouveauMenu.reduce((sum, repas) => sum + repas.prixCalcule, 0)
@@ -322,11 +371,11 @@ function App() {
 
   return (
     <div className="app-container">
-      <header className="hero-panel">
-        <div className="hero-copy">
-          <span className="hero-eyebrow">Planificateur hebdo</span>
-          <h1>MyWeekPlan</h1>
-          <p>Un menu plus malin, moins cher, et branché sur ton frigo.</p>
+      <header className="py-12">
+        <div className="container mx-auto px-4 text-center">
+          <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Planificateur hebdo</span>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mt-2">MyWeekPlan</h1>
+          <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">Un menu plus malin, moins cher, et branché sur ton frigo.</p>
         </div>
 
         <div className="hero-metrics" aria-label="Résumé rapide">
@@ -360,55 +409,56 @@ function App() {
       
       {currentStep === 1 && (
         <div className="screen" aria-busy={isLoading}>
-          <div className="card card-hero">
-            <div className="card-header">
+          <div className="rounded-xl border bg-card text-card-foreground shadow">
+            <div className="flex flex-col space-y-1.5 p-6">
               <div>
-                <h2>Prépare ton menu</h2>
-                <p>Entre ton budget, le nombre de repas et ce que tu as déjà.</p>
+                <h2 className="font-semibold leading-none tracking-tight text-2xl">Prépare ton menu</h2>
+                <p className="text-sm text-muted-foreground">Entre ton budget, le nombre de repas et ce que tu as déjà.</p>
               </div>
               {errorMsg ? <span className="status-pill status-pill-error">Erreur</span> : <span className="status-pill status-pill-success">Prêt</span>}
             </div>
 
             {isLoading && (
-              <div className="loading-banner">
+              <div className="p-6 pt-0 loading-banner">
                 <span className="loading-dot" />
                 Génération du menu en cours, ne ferme pas la page.
               </div>
             )}
+            <div className="p-6 pt-0 grid gap-4">
+              {/* Ligne Budget */}
+              <div className="grid gap-2">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Quel est ton budget de la semaine ?</label>
+                <div className="relative">
+                  <input type="number" value={budget} onChange={(e) => setBudget(Number(e.target.value))} min="1" max="500" step="1" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"/>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">€</span>
+                </div>
+                <p className="text-sm text-muted-foreground">Budget conseillé: entre 1 € et 500 €.</p>
+              </div>
+              
+              {/* Nouvelle disposition pour Repas et Personnes côte à côte */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">Nbr de repas</label>
+                  <input type="number" value={mealsCount} onChange={(e) => setMealsCount(Number(e.target.value))} min="1" max="14" step="1" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"/>
+                  <p className="text-sm text-muted-foreground">Entre 1 et 14 repas.</p>
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">Personnes</label>
+                  <input type="number" value={portions} onChange={(e) => setPortions(Number(e.target.value))} min="1" max="12" step="1" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"/>
+                  <p className="text-sm text-muted-foreground">Pour 1 à 12 personnes.</p>
+                </div>
+              </div>
 
-            {/* Ligne Budget */}
-            <div className="input-group">
-              <label>Quel est ton budget de la semaine ?</label>
-              <div style={{ position: 'relative' }}>
-                <input type="number" value={budget} onChange={(e) => setBudget(Number(e.target.value))} min="1" max="500" step="1" />
-                <span style={{ position: 'absolute', right: '15px', top: '15px', fontWeight: 'bold', color: '#6b7280' }}>€</span>
+              <div className="grid gap-2">
+                <label className="text-sm font-medium">Mode de planification</label>
+                <select value={planningMode} onChange={(e) => setPlanningMode(e.target.value)} className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                  <option value="economic">Économique</option>
+                  <option value="balanced">Équilibré</option>
+                  <option value="quick">Rapide</option>
+                  <option value="anti-gaspi">Anti-gaspi</option>
+                </select>
+                <p className="text-sm text-muted-foreground">Choisis l’angle de sélection du menu.</p>
               </div>
-              <span className="input-help">Budget conseillé: entre 1 € et 500 €.</span>
-            </div>
-            
-            {/* Nouvelle disposition pour Repas et Personnes côte à côte */}
-            <div style={{ display: 'flex', gap: '15px' }}>
-              <div className="input-group" style={{ flex: 1 }}>
-                <label>Nbr de repas</label>
-                <input type="number" value={mealsCount} onChange={(e) => setMealsCount(Number(e.target.value))} min="1" max="14" step="1" />
-                <span className="input-help">Entre 1 et 14 repas pour garder un menu réaliste.</span>
-              </div>
-              <div className="input-group" style={{ flex: 1 }}>
-                <label>Personnes</label>
-                <input type="number" value={portions} onChange={(e) => setPortions(Number(e.target.value))} min="1" max="12" step="1" />
-                <span className="input-help">Le calcul est optimisé pour 1 à 12 personnes.</span>
-              </div>
-            </div>
-
-            <div className="input-group">
-              <label>Mode de planification</label>
-              <select value={planningMode} onChange={(e) => setPlanningMode(e.target.value)}>
-                <option value="economic">Économique</option>
-                <option value="balanced">Équilibré</option>
-                <option value="quick">Rapide</option>
-                <option value="anti-gaspi">Anti-gaspi</option>
-              </select>
-              <span className="input-help">Choisis l’angle de sélection du menu avant de lancer la génération.</span>
             </div>
           </div>
           <SectionFrigo 
@@ -417,8 +467,8 @@ function App() {
             onUpdateQuantite={handleUpdateFrigo} 
             onAjouterItem={handleAjouterFrigo}
           />
-          {errorMsg && <p style={{ color: '#ef4444', textAlign: 'center', fontWeight: 'bold' }}>{errorMsg}</p>}
-          <button className="btn-action" onClick={handleGenerateMenuClick} disabled={isBusy}>
+          {errorMsg && <p className="text-destructive text-center font-bold">{errorMsg}</p>}
+          <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 w-full text-base" onClick={handleGenerateMenuClick} disabled={isBusy}>
             {isLoading ? 'Calcul en cours...' : 'Générer mon menu'}
           </button>
         </div>
@@ -436,12 +486,6 @@ function App() {
             <span className="status-pill status-pill-success">{planningModeLabels[planningMode] || 'Équilibré'}</span>
           </div>
 
-          {isGeneratingShoppingList && (
-            <div className="loading-banner">
-              <span className="loading-dot" />
-              Création de la liste de courses en cours.
-            </div>
-          )}
           {rerollingIndex !== null && (
             <div className="loading-banner">
               <span className="loading-dot" />
@@ -482,51 +526,55 @@ function App() {
           </div>
 
           <div className="meal-list">
-            {menu.map((repas, index) => (
-              <div key={index} 
-                className="meal-item" 
-                onClick={() => setSelectedRecipe(repas)} 
-                style={{ cursor: 'pointer' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <img src={repas.image_url || 'https://via.placeholder.com/60?text=Miam'} alt={repas.nom} className="meal-image" />
-                  <div className="meal-item-left">
-                    <h3>{repas.nom}</h3>
-                    <p>⏱ {repas.temps_prep} min</p>
+            {isLoading ? (
+              [...Array(mealsCount)].map((_, i) => <MealItemSkeleton key={i} />)
+            ) : (
+              menu.map((repas, index) => (
+                <div key={index} 
+                  className="meal-item flex items-center justify-between p-4 rounded-lg border bg-card text-card-foreground shadow-sm" 
+                  onClick={() => setSelectedRecipe(repas)} 
+                  style={{ cursor: 'pointer' }} // Gardé pour l'indication visuelle
+                >
+                  <div className="flex items-center gap-4">
+                    <img src={repas.image_url || 'https://via.placeholder.com/60?text=Miam'} alt={repas.nom} className="meal-image" />
+                    <div className="meal-item-left">
+                      <h3>{repas.nom}</h3>
+                      <p>⏱ {repas.temps_prep} min</p>
+                    </div>
+                  </div>
+
+                  <div className="meal-price-container flex items-center gap-2">
+                    <span className="meal-price">{repas.prixCalcule.toFixed(2)} €</span>
+                    <button
+                      type="button"
+                      className={`btn-lock ${lockedMeals[index] ? 'locked' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleMealLock(index)
+                      }}
+                      disabled={isBusy}
+                      aria-pressed={Boolean(lockedMeals[index])}
+                      title={lockedMeals[index] ? 'Déverrouiller ce plat' : 'Verrouiller ce plat'}
+                    >
+                      {lockedMeals[index] ? '🔒' : '🔓'}
+                    </button>
+                    <button 
+                      className={`btn-reroll ${rerollingIndex === index ? 'spinning' : ''}`}
+                      onClick={(e) => { 
+                        e.stopPropagation(); // EMPÊCHE D'OUVRIR LA RECETTE QUAND ON CLIQUE SUR REROLL
+                        handleRerollMeal(index) 
+                      }}
+                      disabled={isBusy}
+                    >
+                      🔄
+                    </button>
                   </div>
                 </div>
-
-                <div className="meal-price-container">
-                  <span className="meal-price">{repas.prixCalcule.toFixed(2)} €</span>
-                  <button
-                    type="button"
-                    className={`btn-lock ${lockedMeals[index] ? 'locked' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      toggleMealLock(index)
-                    }}
-                    disabled={isBusy}
-                    aria-pressed={Boolean(lockedMeals[index])}
-                    title={lockedMeals[index] ? 'Déverrouiller ce plat' : 'Verrouiller ce plat'}
-                  >
-                    {lockedMeals[index] ? '🔒' : '🔓'}
-                  </button>
-                  <button 
-                    className={`btn-reroll ${rerollingIndex === index ? 'spinning' : ''}`}
-                    onClick={(e) => { 
-                      e.stopPropagation(); // EMPÊCHE D'OUVRIR LA RECETTE QUAND ON CLIQUE SUR REROLL
-                      handleRerollMeal(index) 
-                    }}
-                    disabled={isBusy}
-                  >
-                    🔄
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
-          <button className="btn-action" onClick={handleGenerateListClick} disabled={isBusy}>
-            {isGeneratingShoppingList ? 'Création...' : 'Valider & faire les courses'}
+          <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 w-full text-base" onClick={handleGenerateListClick} disabled={isBusy}>
+            {isGeneratingShoppingList ? 'Création en cours...' : 'Valider & faire les courses'}
           </button>
         </div>
       )}
@@ -539,44 +587,48 @@ function App() {
             <span className="status-pill status-pill-success">Courses prêtes</span>
           </div>
           
-          <div className="shopping-container" style={{ marginTop: '24px' }}>
-            {Object.entries(shoppingList).map(([rayon, items]) => (
-              <div key={rayon} className="shopping-category">
-                <h3 className="category-title">{rayon}</h3>
-                
-                <div className="shopping-card">
-                  {items.map((item) => {
-                    // On vérifie si l'ID de l'item est dans l'objet/tableau checkedItems
-                    const isChecked = checkedItems[item.id] || false;
-                    
-                    return (
-                      <div 
-                        key={item.id} 
-                        className={`shopping-item-row ${isChecked ? 'checked' : ''}`}
-                        onClick={() => toggleCheck(item.id)} // Garde ta fonction toggleCheck d'origine
-                      >
-                        {/* L'icône dynamique */}
-                        <div className={`item-icon-wrapper ${getBackgroundClass(item.tag)}`}>
-                          {getEmojiForTag(item.tag)}
+          <div className="shopping-container mt-6 space-y-6">
+            {isGeneratingShoppingList ? (
+              <ShoppingListSkeleton />
+            ) : (
+              Object.entries(shoppingList).map(([rayon, items]) => (
+                <div key={rayon} className="shopping-category">
+                  <h3 className="category-title text-lg font-semibold mb-3">{rayon}</h3>
+                  
+                  <div className="shopping-card rounded-lg border bg-card text-card-foreground shadow-sm p-2 space-y-1">
+                    {items.map((item) => {
+                      // On vérifie si l'ID de l'item est dans l'objet/tableau checkedItems
+                      const isChecked = checkedItems[item.id] || false;
+                      
+                      return (
+                        <div 
+                          key={item.id} 
+                          className={`shopping-item-row flex items-center gap-4 p-3 rounded-md cursor-pointer transition-colors hover:bg-accent ${isChecked ? 'bg-secondary' : ''}`}
+                          onClick={() => toggleCheck(item.id)} // Garde ta fonction toggleCheck d'origine
+                        >
+                          {/* L'icône dynamique */}
+                          <div className={`item-icon-wrapper ${getBackgroundClass(item.tag)}`}>
+                            {getEmojiForTag(item.tag)}
+                          </div>
+                          
+                          {/* Le texte */}
+                          <div className="item-details">
+                            <div className="item-name">{item.nom}</div>
+                            {/* Affichage intelligent (g/kg ou ml/L) */}
+                            <div className="item-qty">{formatQuantity(item.tag, item.quantite)}</div>
+                          </div>
+                          
+                          {/* La case à cocher ronde */}
+                          <div className={`item-checkbox ml-auto h-5 w-5 rounded-full border-2 flex items-center justify-center ${isChecked ? 'bg-primary border-primary' : 'border-muted-foreground'}`}>
+                            {isChecked && <span className="text-primary-foreground text-xs font-bold">✓</span>}
+                          </div>
                         </div>
-                        
-                        {/* Le texte */}
-                        <div className="item-details">
-                          <div className="item-name">{item.nom}</div>
-                          {/* Affichage intelligent (g/kg ou ml/L) */}
-                          <div className="item-qty">{formatQuantity(item.tag, item.quantite)}</div>
-                        </div>
-                        
-                        {/* La case à cocher ronde */}
-                        <div className="item-checkbox">
-                          {isChecked && <span style={{ color: 'white', fontSize: '14px', fontWeight: 'bold' }}>✓</span>}
-                        </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       )}
@@ -584,36 +636,35 @@ function App() {
       {selectedRecipe && (
         <div className="modal-overlay" onClick={() => setSelectedRecipe(null)}>
 
-          {/* stopPropagation empêche la modale de se fermer si on clique sur la carte blanche */}
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content rounded-xl border bg-card text-card-foreground shadow-xl" onClick={(e) => e.stopPropagation()}>
             <button className="btn-close" onClick={() => setSelectedRecipe(null)}>✕</button>
 
             <img 
               src={selectedRecipe.image_url || 'https://via.placeholder.com/400?text=Miam'} 
               alt={selectedRecipe.nom} 
-              className="modal-img" 
+              className="modal-img rounded-t-xl" 
             />
 
-            <div className="modal-body">
-              <h2 style={{color: 'var(--primary)'}}>
+            <div className="modal-body p-6">
+              <h2 className="text-2xl font-bold text-primary">
                 {selectedRecipe.nom}</h2>
-              <div className="modal-meta">
+              <div className="modal-meta text-sm text-muted-foreground mt-2">
                 ⏱ {selectedRecipe.temps_prep} min • 👤 Pour {portions} personne(s)
               </div>
 
-              <h3 style={{ marginTop: '24px', marginBottom: '12px' }}>Ingrédients</h3>
-              <div>
+              <h3 className="mt-6 mb-3 text-lg font-semibold">Ingrédients</h3>
+              <div className="flex flex-wrap gap-2">
                 {selectedRecipe.ingredients && selectedRecipe.ingredients.map((ing, i) => (
-                  <span key={i} className="ingredient-pill">
+                  <span key={i} className="ingredient-pill inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
                     {/* On multiplie par le nombre de portions ! */}
-                    <span className="ingredient-qty">{(ing.besoin_grammes * portions).toString().replace('.', ',')}g</span> 
+                    <span className="ingredient-qty font-bold mr-1.5">{(ing.besoin_grammes * portions).toString().replace('.', ',')}g</span> 
                     {ing.tag.replace(/_/g, ' ')}
                   </span>
                 ))}
               </div>
 
-              <h3 style={{ marginTop: '24px', marginBottom: '12px' }}>Préparation</h3>
-              <p style={{ color: 'var(--text-light)', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+              <h3 className="mt-6 mb-3 text-lg font-semibold">Préparation</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
                 {selectedRecipe.instructions || "Les instructions de préparation n'ont pas encore été ajoutées pour cette recette."}
               </p>
             </div>
