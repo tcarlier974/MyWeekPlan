@@ -37,34 +37,34 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* --- GLASSMORPHISM & BENTO GRID --- */
-.glass-panel {
+@utility glass-panel {
   @apply bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl;
 }
 
-.bento-grid {
+@utility bento-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
 }
 
-.bento-item {
+@utility bento-item {
   @apply glass-panel rounded-3xl p-6 flex flex-col transition-transform duration-300;
 }
 
-.bento-item-large {
+@utility bento-item-large {
   grid-column: 1 / -1;
 }
 
 /* --- BOUTONS FAÇON iOS --- */
-.btn-apple {
+@utility btn-apple {
   @apply bg-primary text-white font-semibold rounded-2xl px-6 py-4 w-full transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center shadow-lg shadow-primary/25;
 }
 
-.btn-apple-secondary {
+@utility btn-apple-secondary {
   @apply bg-white/10 text-white font-semibold rounded-2xl px-6 py-3 transition-transform duration-200 active:scale-[0.97] hover:bg-white/15 flex items-center justify-center;
 }
 
-.glass-input {
+@utility glass-input {
   @apply bg-black/40 border border-white/10 text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:border-primary transition-all duration-200 rounded-xl px-4 py-3 outline-none w-full font-semibold;
 }
 
