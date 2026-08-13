@@ -36,12 +36,6 @@ h1, h2, h3, h4, h5, h6 {
   @apply font-sans tracking-tight;
 }
 
-  /* On force le Sans-Serif partout pour un look Tech */
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-sans tracking-tight;
-  }
-}
-
 /* --- GLASSMORPHISM & BENTO GRID --- */
 .glass-panel {
   @apply bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl;
