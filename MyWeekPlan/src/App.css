@@ -1,159 +1,85 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  /* Charte Apple Dark Mode injectée dans Tailwind v4 */
-  --color-background: #000000;
-  --color-foreground: #fcfcfc;
-  --color-card: #161618;
-  --color-card-foreground: #fcfcfc;
-  --color-popover: #161618;
-  --color-popover-foreground: #fcfcfc;
-  --color-primary: #0a84ff; /* iOS Blue Dark Mode */
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #1c1c1e;
-  --color-secondary-foreground: #fcfcfc;
-  --color-muted: #1c1c1e;
-  --color-muted-foreground: #98989d;
-  --color-accent: #1c1c1e;
-  --color-accent-foreground: #fcfcfc;
-  --color-destructive: #ff453a;
-  --color-destructive-foreground: #ffffff;
-  --color-border: #38383a;
-  --color-input: #38383a;
-  --color-ring: #0a84ff;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-display: 'Syne', sans-serif;
+
+  /* Palette Brutalisme Éditorial & Yuzu */
+  --color-background: #F4F1EB; /* Sable / Papier */
+  --color-foreground: #121212; /* Encre très noire */
+  
+  --color-primary: #E8B923; /* Jaune Yuzu vibrant */
+  --color-primary-foreground: #121212;
+  
+  --color-card: #FFFFFF;
+  --color-card-foreground: #121212;
+  
+  --color-muted: #E5E2DC;
+  --color-muted-foreground: #6B6A65;
+  
+  --color-border: #121212; /* Bordures noires intenses */
 }
 
 body {
   @apply bg-background text-foreground font-sans antialiased;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-image: radial-gradient(circle at 50% -20%, #1a1a2e 0%, #000000 50%);
-  background-attachment: fixed;
+  position: relative;
   min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* --- TEXTURE GRAIN DE PAPIER (Bruit SVG) --- */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 9999;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  @apply font-sans tracking-tight;
+  @apply font-display tracking-tight font-bold;
 }
 
-/* --- GLASSMORPHISM & BENTO GRID --- */
-@utility glass-panel {
-  @apply bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl;
+/* --- UTILITAIRES BRUTALISTES --- */
+@utility brutal-border {
+  @apply border-[3px] border-foreground;
 }
 
-@utility bento-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
+@utility brutal-shadow {
+  @apply shadow-[6px_6px_0px_0px_rgba(18,18,18,1)] transition-all duration-300;
 }
 
-@utility bento-item {
-  @apply glass-panel rounded-3xl p-6 flex flex-col transition-transform duration-300;
+@utility brutal-shadow-hover {
+  @apply hover:shadow-[10px_10px_0px_0px_rgba(18,18,18,1)] hover:-translate-y-1 hover:-translate-x-1;
 }
 
-@utility bento-item-large {
-  grid-column: 1 / -1;
+@utility brutal-card {
+  @apply bg-card brutal-border brutal-shadow p-6 flex flex-col relative overflow-hidden;
 }
 
-/* --- BOUTONS FAÇON iOS --- */
-@utility btn-apple {
-  @apply bg-primary text-white font-semibold rounded-2xl px-6 py-4 w-full transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center shadow-lg shadow-primary/25;
+@utility brutal-btn {
+  @apply bg-primary text-primary-foreground brutal-border brutal-shadow font-display font-bold uppercase tracking-widest px-8 py-4 flex items-center justify-center cursor-pointer active:translate-y-1 active:translate-x-1 active:shadow-none transition-all;
 }
 
-@utility btn-apple-secondary {
-  @apply bg-white/10 text-white font-semibold rounded-2xl px-6 py-3 transition-transform duration-200 active:scale-[0.97] hover:bg-white/15 flex items-center justify-center;
+@utility brutal-input {
+  @apply bg-transparent brutal-border px-4 py-3 text-foreground focus:outline-none focus:bg-white font-sans font-bold transition-colors w-full;
 }
 
-@utility glass-input {
-  @apply bg-black/40 border border-white/10 text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:border-primary transition-all duration-200 rounded-xl px-4 py-3 outline-none w-full font-semibold;
+/* --- HALOS LUMINEUX ABSTRAITS (Images) --- */
+@utility halo-visual {
+  @apply relative overflow-hidden flex items-center justify-center text-5xl brutal-border bg-card;
 }
 
-/* --- MESH GRADIENTS (Générateur de placeholders animés) --- */
-.mesh-gradient {
-  background-size: 200% 200%;
-  animation: meshMove 8s ease-in-out infinite;
-  @apply flex items-center justify-center text-3xl shadow-inner;
-}
-.mesh-meat { background: linear-gradient(135deg, #ff3b30, #ff9500); }
-.mesh-fish { background: linear-gradient(135deg, #007aff, #5856d6); }
-.mesh-veg { background: linear-gradient(135deg, #34c759, #30b0c7); }
-.mesh-dairy { background: linear-gradient(135deg, #ffcc00, #ff9500); }
-.mesh-default { background: linear-gradient(135deg, #8e8e93, #48484a); }
-
-@keyframes meshMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+/* On cible la classe générée pour le pseudo-élément */
+.halo-visual::before {
+  content: "";
+  @apply absolute inset-0 opacity-40 blur-2xl transition-transform duration-700;
+  background: radial-gradient(circle at 50% 50%, var(--color-primary), transparent 60%);
 }
 
-/* --- SHOPPING LIST (Style app "Rappels" iOS) --- */
-.reminders-list {
-  @apply flex flex-col bg-card/40 rounded-3xl border border-white/10 overflow-hidden mb-6;
-}
-.reminders-category {
-  @apply sticky top-0 bg-background/80 backdrop-blur-xl px-6 py-3 text-sm font-bold text-primary uppercase tracking-widest z-10 border-b border-white/5;
-}
-.reminders-item {
-  @apply flex items-center gap-4 p-4 border-b border-white/5 last:border-b-0 cursor-pointer transition-colors hover:bg-white/5;
-}
-.reminders-checkbox {
-  @apply w-6 h-6 rounded-full border-[1.5px] border-muted-foreground flex items-center justify-center transition-all duration-300;
-}
-.reminders-item.checked .reminders-checkbox {
-  @apply bg-primary border-primary;
-}
-.reminders-item.checked .item-name,
-.reminders-item.checked .item-qty {
-  @apply text-muted-foreground opacity-50;
-}
-
-/* --- BOTTOM TAB BAR (MOBILE UNIQUEMENT) --- */
-.bottom-tab-bar {
-  display: none;
-}
-@media (max-width: 768px) {
-  .desktop-stepper {
-    display: none;
-  }
-  .app-container {
-    padding-bottom: 7rem; /* Espace pour la barre */
-  }
-  .bottom-tab-bar {
-    @apply fixed bottom-0 left-0 right-0 h-20 glass-panel border-x-0 border-b-0 rounded-none z-50 flex items-center justify-around px-2;
-    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 16px));
-  }
-  .tab-item {
-    @apply flex flex-col items-center gap-1 text-[10px] font-medium text-muted-foreground transition-all duration-200 p-2;
-  }
-  .tab-item.active {
-    @apply text-primary scale-105;
-  }
-  .tab-item:disabled {
-    @apply opacity-30 cursor-not-allowed;
-  }
-}
-
-/* --- ANIMATIONS MODALES & SCREENS --- */
-.screen {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  @apply flex-1 flex flex-col gap-6;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); filter: blur(4px); }
-  to { opacity: 1; transform: translateY(0); filter: blur(0); }
-}
-
-.modal-overlay {
-  @apply fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md p-4 transition-opacity;
-}
-.modal-content {
-  @apply w-full max-w-lg glass-panel rounded-[2rem] overflow-hidden flex flex-col max-h-[85vh] relative;
-  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@keyframes slideUp {
-  from { transform: translateY(100%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-.btn-close {
-  @apply absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-black/50 backdrop-blur-md text-white rounded-full transition-transform active:scale-90 z-10;
+.halo-visual:hover::before {
+  @apply scale-150;
 }
